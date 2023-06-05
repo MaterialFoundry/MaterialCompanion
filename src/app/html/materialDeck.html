@@ -1,0 +1,29 @@
+<div class="form-elements">
+    <label class="tooltip">{{localize "MD.MODULECONNECTED.LABEL"}}
+        <span class="tooltiptext">{{localize "MD.MODULECONNECTED.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <input class="moduleCB" type="checkbox" id="mdFoundryCb" disabled>
+    </div>
+</div>
+
+<div class="form-elements">
+    <label class="tooltip">{{localize "MD.SDCONNECTED.LABEL"}}
+        <span class="tooltiptext">{{localize "MD.SDCONNECTED.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <input class="moduleCB" type="checkbox" id="mdDeviceCb" disabled>
+    </div>
+</div>
+
+<h3 class="tooltip">{{localize "MD.DEVICES.LABEL"}}
+    <span class="tooltiptext">{{localize "MD.DEVICES.TOOLTIP"}}</span>
+    </h3>
+<table class="sdTable" id="sdTable">
+    <tr>
+        <th class="sdTable-Name">{{localize "NAME"}}</th>
+        <th class="sdTable-Type">{{localize "TYPE"}}</th>
+    </tr>
+    <div id="sdEntries"></div>
+    
+</table>

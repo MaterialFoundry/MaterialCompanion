@@ -1,0 +1,114 @@
+
+name: Build app
+
+on: 
+  release:
+    types: [published]
+      
+jobs:
+  build_for_win:
+    runs-on: windows-latest
+    steps:
+    # checkout branch
+    - uses: actions/checkout@v3
+
+    # install node
+    - uses: actions/setup-node@master
+      with:
+        node-version: 18.16
+
+    - run: npm update
+    - run: npm install
+    - run: npm run build -production
+    - run: Compress-Archive -Path ./dist/win-unpacked/* -Destination MaterialCompanion-win32-x64.zip
+    #- run: move ./dist/Material\ Companion-1.0.0-win.zip ./MaterialCompanion-win32-x64.zip
+    - run: ls
+    - run: ls ./dist
+
+    # Create a release for this specific version
+    - name: Update Release with Files
+      id: create_version_release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true # Set this to false if you want to prevent updating existing releases
+        name: ${{ github.event.release.name }}
+        draft: ${{ github.event.release.unpublished }}
+        prerelease: ${{ github.event.release.prerelease }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: './MaterialCompanion-win32-x64.zip'
+        tag: ${{ github.event.release.tag_name }}
+        body: ${{ github.event.release.body }}
+
+  build_for_mac:
+    runs-on: macOS-latest
+    steps:
+    # checkout branch
+    - uses: actions/checkout@v3
+
+    # install node
+    - uses: actions/setup-node@master
+      with:
+        node-version: 18.16
+
+    - run: npm update
+    - run: npm install
+    - name: Build app
+      env:
+        ELECTRON: true
+        APP_VERSION_NUMBER: 0.5.9
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npm run build -production
+    - run: ls -hl ./dist
+    - run: mv ./dist/Material\ Companion-1.0.0.dmg ./MaterialCompanion-macos-x64.dmg
+    - run: mv ./dist/Material\ Companion-1.0.0-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
+    - run: ls -hl
+
+    # Create a release for this specific version
+    - name: Update Release with Files
+      id: create_version_release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true # Set this to false if you want to prevent updating existing releases
+        name: ${{ github.event.release.name }}
+        draft: ${{ github.event.release.unpublished }}
+        prerelease: ${{ github.event.release.prerelease }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: './MaterialCompanion-macos-x64.dmg, ./MaterialCompanion-macos-arm64.dmg'
+        tag: ${{ github.event.release.tag_name }}
+        body: ${{ github.event.release.body }}
+  
+  build_for_linux:
+    runs-on: ubuntu-latest
+    steps:
+      # checkout branch
+      - uses: actions/checkout@v3
+  
+      # install node
+      - uses: actions/setup-node@master
+        with:
+          node-version: 18.16
+  
+      - run: npm update
+      - run: npm install
+      - run: npm run build -production
+      - run: ls -hl ./dist
+      - run: ls -hl ./dist/linux-unpacked
+      #- run: mv ./dist/material-companion_1.0.0_amd64.deb ./MaterialCompanion-linux-x64.deb
+      #- run: zip -j ./MaterialCompanion-linux-x64.zip ./dist/linux-unpacked/*
+      #- run: ls -hl
+      - run: mv ./dist/material-companion-1.0.0.zip ./MaterialCompanion-linux-x64.zip
+      - run: ls
+
+      # Create a release for this specific version
+      - name: Update Release with Files
+        id: create_version_release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true # Set this to false if you want to prevent updating existing releases
+          name: ${{ github.event.release.name }}
+          draft: ${{ github.event.release.unpublished }}
+          prerelease: ${{ github.event.release.prerelease }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: './MaterialCompanion-linux-x64.zip'
+          tag: ${{ github.event.release.tag_name }}
+          body: ${{ github.event.release.body }}

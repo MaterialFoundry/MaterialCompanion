@@ -1,0 +1,46 @@
+<div class="form-elements">
+    <label class="tooltip">{{localize "SETTINGS.LANGUAGE.LABEL"}}
+        <span class="tooltiptext">{{localize "SETTINGS.LANGUAGE.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <select id="languageSelect"></select>
+    </div>  
+</div>
+
+<div class="form-elements">
+    <label class="tooltip">{{localize "SETTINGS.WEBSOCKETPORT.LABEL"}}
+        <span class="tooltiptext">{{localize "SETTINGS.WEBSOCKETPORT.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <input type="number" id="port" min="0" max="65535" value="3001">
+    </div>  
+</div>
+
+<div class="form-elements">
+    <label class="tooltip">{{localize "SETTINGS.RUNINTRAY.LABEL"}}
+        <span class="tooltiptext">{{localize "SETTINGS.RUNINTRAY.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <input type="checkbox" id="runInTray">
+    </div>
+</div>
+
+<hr>
+
+<div class="form-elements">
+    <label class="tooltip">{{localize "SETTINGS.SAVE.LABEL"}}
+        <span class="tooltiptext">{{localize "SETTINGS.SAVE.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <button type="button" id="saveSettings">{{localize "SAVE"}}</button>
+    </div>  
+</div>
+
+<div class="form-elements">
+    <label class="tooltip">{{localize "SETTINGS.DEFAULTS.LABEL"}}
+        <span class="tooltiptext">{{localize "SETTINGS.DEFAULTS.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <button type="button" id="resetSettings">{{localize "RESET"}}</button>
+    </div>  
+</div>

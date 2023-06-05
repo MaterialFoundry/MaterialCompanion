@@ -1,0 +1,80 @@
+{
+  "name": "material-companion",
+  "productName": "Material Companion",
+  "version": "0.3.2",
+  "description": "Companion app for the Material Foundry modules and hardware",
+  "main": "src/main.js",
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    },
+    {
+      "lang": "nl",
+      "name": "Nederlands",
+      "path": "lang/nl.json"
+    }
+  ],
+  "scripts": {
+    "start": "electron .",
+    "postinstall": "install-app-deps",
+    "pack": "electron-builder --dir",
+    "build": "electron-builder --publish never"
+  },
+  "build": {
+    "appId": "com.electron.materialcompanion",
+    "dmg": {
+      "contents": [
+        {
+          "x": 110,
+          "y": 150
+        },
+        {
+          "x": 240,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "zip"
+      ],
+      "icon": "src/app/images/icons/png",
+      "maintainer": "Material Foundry"
+    },
+    "win": {
+      "target": "zip",
+      "icon": "src/app/images/icons/win/icon.ico"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "src/app/images/icons/mac/icon.icns"
+    }
+  },
+  "author": "Material Foundry <info@materialfoundry.nl>",
+  "license": "MIT",
+  "copyright": "Copyright © 2023 Material Foundry",
+  "devDependencies": {
+    "electron": "^25.0.1",
+    "electron-builder": "^24.4.0",
+    "electron-builder-squirrel-windows": "^24.4.0",
+    "electron-wix-msi": "^5.0.0"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.4.0",
+    "electron-settings": "^4.0.2",
+    "electron-squirrel-startup": "^1.0.0",
+    "ip": "^1.1.8"
+  }
+}

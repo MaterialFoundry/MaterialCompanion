@@ -1,0 +1,229 @@
+body {
+    min-height: 100vh;
+    background-color: #10111f;
+    color: white;
+    font-family:'Arial';
+    display:flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+.mainBody {
+    position: relative;
+    overflow: auto;
+    flex-grow: 1;
+}
+
+.footer {
+    font-size: 0.85em;
+    text-align: center;
+    color: gray;
+    margin-top: auto;
+}
+
+.logoOverlay {
+  position: absolute;
+  background-color: inherit;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 1;
+}
+
+.logoOverlay img {
+  width: 50%;
+  margin: auto;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 2;
+}
+
+.hyperlink {
+    color: gray;
+}
+ 
+ .mainTab,
+ .mpTab {
+    overflow: hidden;
+    
+    display: flex;
+    flex-direction: row;
+  }
+  
+  .mainTab button,
+  .mpTab button {
+    background-color: #2d3058;
+    color: inherit;
+    float: left;
+    flex-grow: 1;
+    flex-basis: 0;
+    border: 2px solid #10111f;
+    border-radius: 10px 10px 0px 0px;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+  }
+  
+  .mainTab button:hover,
+  .mpTab button:hover {
+    background-color: #ddd;
+  }
+  
+  .mainTab button.active,
+  .mpTab button.active {
+    background-color: #10111f;
+    color: inherit;
+  }
+  
+  .mainTabContent,
+  .mpTabContent {
+    display: none;
+    padding: 6px 12px;
+    height: 100%;
+  } 
+
+  .form-elements {
+    width: 100%;
+    display: flex;
+    margin-top: 10px;
+}
+
+.form-elements label {
+    width: 50%;
+    font-size: 16px;
+}
+
+.form-elements .form-val {
+    position: absolute;
+    right: 0px;
+    padding-right: 10px;
+    display: flex;
+    justify-content: flex-end;
+    width: 35%;
+}
+
+.form-elements .form-val input[type='text'],
+.form-elements .form-val input[type='number'],
+.form-elements .form-val select,
+.form-elements .form-val input[type='file'],
+.form-elements .form-val .mpFileUpload,
+.mpFileUploadWrapper {
+  flex-grow: 4;
+  background-color: #2d3058;
+  color: white;
+}
+
+.mpFileUploadWrapper {
+  
+  background-color: #10111f;
+  margin-right: -15px;
+}
+
+.mpFileUploadWrapper label {
+  font-size: 12px;
+  max-width: 75px;
+  background-color: #2d3058;
+  margin:auto;
+  float: right;
+}
+
+.mpFileUpload {
+  border: 1px solid #000000;
+  display: inline-block;
+  padding: 6px 12px;
+  cursor: pointer;
+  margin-left: 50%;
+}
+
+.form-elements button {
+  background-color: #2d3058;
+  color: white;
+  margin-left: 5px;
+}
+
+/* Tooltip container */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+  }
+  
+  /* Tooltip text */
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    background-color: black;
+    text-align: center;
+    padding: 5px 0;
+    margin-left: 5px;
+    border-radius: 6px;
+    min-width: 250px;
+   
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+    font-size: 12px;
+    font-style: italic;
+    font-weight: normal;
+    color: darkgrey;
+  }
+
+  /* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+  }
+
+  .connTable,
+.sdTable,
+.mkTable {
+    width: 100%;
+}
+
+.connTable tr,
+.sdTable tr,
+.mkTable tr {
+    width: 100%;
+}
+.sdTable td,
+.mkTable td {
+    font-size: 0.9em;
+}
+
+.connTable-Module {
+  text-align: left;
+  width: 60%;
+}
+
+.connTable-Foundry,
+.connTable-Device {
+  text-align: center;
+  vertical-align:middle;
+}
+
+.connTable input[type='checkbox'],
+.moduleCB {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -o-appearance: none;
+  appearance: none;
+  font-size: 1em;
+}
+
+.connTable input[type='checkbox']:checked:after,
+.moduleCB:checked:after,
+.cbChecked {
+  content: '✔';
+  color: green;
+}
+
+.connTable input[type='checkbox']:not(:checked):after,
+.moduleCB:not(:checked):after,
+.cbUnchecked {
+  content: '✘';
+  color: red;
+}

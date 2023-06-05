@@ -1,0 +1,43 @@
+<div class="form-elements">
+    <label class="tooltip">{{localize "OVERVIEW.MCADDR.LABEL"}}
+        <span class="tooltiptext">{{localize "OVERVIEW.MCADDR.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <input type="text" id="materialCompanionAddress" value="" disabled>
+    </div>
+</div>
+
+<div class="form-elements">
+    <label class="tooltip">{{localize "OVERVIEW.REMOTEMCADDR.LABEL"}}
+        <span class="tooltiptext">{{localize "OVERVIEW.REMOTEMCADDR.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <input type="text" id="materialCompanionAddressRemote" value="" disabled>
+    </div>
+</div>
+
+<h3 class="tooltip">{{localize "OVERVIEW.CONNSTATUS.LABEL"}}
+    <span class="tooltiptext">{{localize "OVERVIEW.CONNSTATUS.TOOLTIP"}}</span>
+    </h3>
+<table class="connTable" id="connTable">
+    <tr>
+        <th class="connTable-Module">{{localize "MODULE"}}</th>
+        <th class="connTable-Foundry">Foundry</th>
+        <th class="connTable-Device">{{localize "DEVICE"}}</th>
+    </tr>
+    <tr>
+        <td class="connTable-Module">Material Plane</td>
+        <td class="connTable-Foundry"><input type="checkbox" id="mpFoundry" disabled></td>
+        <td class="connTable-Device"><input type="checkbox" id="mpDevice" disabled></td>
+    </tr>
+    <tr>
+        <td class="connTable-Module">Material Deck</td>
+        <td class="connTable-Foundry"><input type="checkbox" id="mdFoundry" disabled></td>
+        <td class="connTable-Device"><input type="checkbox" id="mdDevice" disabled></td>
+    </tr>
+    <tr>
+        <td class="connTable-Module">Material Keys</td>
+        <td class="connTable-Foundry"><input type="checkbox" id="mkFoundry" disabled></td>
+        <td class="connTable-Device"><input type="checkbox" id="mkDevice" disabled></td>
+    </tr>
+</table>
