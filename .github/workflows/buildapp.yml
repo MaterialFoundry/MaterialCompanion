@@ -21,7 +21,7 @@ jobs:
     - run: npm install
     - run: npm run package --omit=dev
     - run: ls ./out
-    - run: Compress-Archive -Path ./out/Material\ Companion-win32-x64/* -Destination MaterialCompanion-win32-x64.zip
+    - run: Compress-Archive -Path "./out/Material Companion-win32-x64/*" -Destination MaterialCompanion-win32-x64.zip
     #- run: move ./dist/Material\ Companion-1.0.0-win.zip ./MaterialCompanion-win32-x64.zip
     - run: ls
 
