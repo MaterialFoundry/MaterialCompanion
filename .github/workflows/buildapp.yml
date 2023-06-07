@@ -60,7 +60,7 @@ jobs:
         ELECTRON: true
         APP_VERSION_NUMBER: 0.5.9
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npm run make --univsersal --omit=dev
+      run: npm run make --arch arm64 --omit=dev
     - run: ls -hl ./out
     - run: ls -hl ./out/Material\ Companion-darwin-x64
     #- run: mv ./out/Material\ Companion-darwin-x64.dmg ./MaterialCompanion-macos-x64.dmg
@@ -91,6 +91,52 @@ jobs:
         tag: ${{ github.event.release.tag_name }}
         body: ${{ github.event.release.body }}
 
+  build_for_mac2:
+    runs-on: macOS-latest
+    steps:
+    # checkout branch
+    - uses: actions/checkout@v3
+
+    # install node
+    - uses: actions/setup-node@master
+      with:
+        node-version: 18.16
+
+    - id: get_version
+      uses: battila7/get-version-action@v2
+
+    - run: npm update
+    - run: npm install
+    - run: npm run make --arch arm64 --omit=dev
+    - run: ls -hl ./out
+    - run: ls -hl ./out/Material\ Companion-darwin-x64
+    #- run: mv ./out/Material\ Companion-darwin-x64.dmg ./MaterialCompanion-macos-x64.dmg
+    - run: ls -hl
+
+    - name: Build app
+      env:
+        ELECTRON: true
+        APP_VERSION_NUMBER: 0.5.9
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npm run make --arch=arm64 --platform=darwin --omit=dev
+    - run: ls -hl ./out
+    - run: ls -hl ./out/Material\ Companion-darwin-arm64
+    #- run: mv ./out/Material\ Companion-darwin-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
+    - run: ls -hl
+
+    # Create a release for this specific version
+    - name: Update Release with Files
+      id: create_version_release
+      uses: ncipollo/release-action@v1
+      with:
+        allowUpdates: true # Set this to false if you want to prevent updating existing releases
+        name: ${{ github.event.release.name }}
+        draft: ${{ github.event.release.unpublished }}
+        prerelease: ${{ github.event.release.prerelease }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: './MaterialCompanion-macos-x64.dmg'
+        tag: ${{ github.event.release.tag_name }}
+        body: ${{ github.event.release.body }}
   build_for_linux:
     runs-on: ubuntu-latest
     steps:
