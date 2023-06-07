@@ -53,8 +53,11 @@
         },
         {
           "name": "@electron-forge/maker-dmg",
-          "config": {}
-        }
+          "config": {
+            "background": "./src/app/images/MaterialFoundry.jpg",
+            "format": "ULFO"
+          }
+          }
       ]
     }
   },
