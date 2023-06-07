@@ -51,7 +51,7 @@ jobs:
         node-version: 18.16
 
     - id: get_version
-      uses: battila7/get-version-action@v2
+      uses: dhkatz/get-version-action@v3
 
     - run: npm update
     - run: npm install
@@ -73,9 +73,9 @@ jobs:
     - run: zip ./MaterialCompanion-macos-arm64.zip ./out/Material\ Companion-darwin-arm64/Material\ Companion.app
     - run: zip ./MaterialCompanion-macos-x64.zip ./out/Material\ Companion-darwin-x64/Material\ Companion.app 
     - run: zip ./MaterialCompanion-macos-universal.zip ./out/Material\ Companion-darwin-universal/Material\ Companion.app
-    - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-arm64.dmg ./MaterialCompanion-macos-x64.dmg
+    - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
     - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-x64.dmg ./MaterialCompanion-macos-x64.dmg
-    - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-universal.dmg ./MaterialCompanion-macos-x64.dmg
+    - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-universal.dmg ./MaterialCompanion-macos-universal.dmg
     - run: ls -hl
 
     - run: ls -hl
