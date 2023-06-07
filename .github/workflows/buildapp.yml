@@ -60,7 +60,7 @@ jobs:
         ELECTRON: true
         APP_VERSION_NUMBER: 0.5.9
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npm run make --arm64 --omit=dev
+      run: npm run make --univsersal --omit=dev
     - run: ls -hl ./out
     - run: ls -hl ./out/Material\ Companion-darwin-x64
     #- run: mv ./out/Material\ Companion-darwin-x64.dmg ./MaterialCompanion-macos-x64.dmg
