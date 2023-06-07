@@ -70,9 +70,12 @@ jobs:
     - run: ls -hl ./out/Material\ Companion-darwin-universal
     - run: ls -hl ./out/make
     #- run: mv ./out/Material\ Companion-darwin-x64.dmg ./MaterialCompanion-macos-x64.dmg
-    - run: mv ./out/Material\ Companion-darwin-arm64/Material\ Companion.app ./MaterialCompanion-macos-arm64.app
-    - run: mv ./out/Material\ Companion-darwin-x64/Material\ Companion.app ./MaterialCompanion-macos-x64.app
-    - run: mv ./out/Material\ Companion-darwin-universal/Material\ Companion.app ./MaterialCompanion-macos-universal.app
+    - run: zip ./MaterialCompanion-macos-arm64.zip ./out/Material\ Companion-darwin-arm64/Material\ Companion.app
+    - run: zip ./MaterialCompanion-macos-x64.zip ./out/Material\ Companion-darwin-x64/Material\ Companion.app 
+    - run: zip ./MaterialCompanion-macos-universal.zip ./out/Material\ Companion-darwin-universal/Material\ Companion.app
+    - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-arm64.dmg ./MaterialCompanion-macos-x64.dmg
+    - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-x64.dmg ./MaterialCompanion-macos-x64.dmg
+    - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-universal.dmg ./MaterialCompanion-macos-x64.dmg
     - run: ls -hl
 
     - run: ls -hl
@@ -87,7 +90,7 @@ jobs:
         draft: ${{ github.event.release.unpublished }}
         prerelease: ${{ github.event.release.prerelease }}
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: './MaterialCompanion-macos-arm64.app, ./MaterialCompanion-macos-x64.app, ./MaterialCompanion-macos-universal.app'
+        artifacts: './MaterialCompanion-macos-arm64.dmg, ./MaterialCompanion-macos-x64.dmg, ./MaterialCompanion-macos-universal.dmg, ./MaterialCompanion-macos-arm64.zip, ./MaterialCompanion-macos-x64.zip, ./MaterialCompanion-macos-universal.zip'
         tag: ${{ github.event.release.tag_name }}
         body: ${{ github.event.release.body }}
 
