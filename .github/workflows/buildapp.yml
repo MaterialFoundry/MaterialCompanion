@@ -52,6 +52,7 @@ jobs:
 
     - id: get_version
       uses: dhkatz/get-version-action@v3.0.0
+    - run: echo ${{ steps.get_version.outputs.version-without-v }}
 
     - run: npm update
     - run: npm install
@@ -70,9 +71,9 @@ jobs:
     - run: ls -hl ./out/Material\ Companion-darwin-universal
     - run: ls -hl ./out/make
     #- run: mv ./out/Material\ Companion-darwin-x64.dmg ./MaterialCompanion-macos-x64.dmg
-    - run: zip ./MaterialCompanion-macos-arm64.zip ./out/Material\ Companion-darwin-arm64/Material\ Companion.app
-    - run: zip ./MaterialCompanion-macos-x64.zip ./out/Material\ Companion-darwin-x64/Material\ Companion.app 
-    - run: zip ./MaterialCompanion-macos-universal.zip ./out/Material\ Companion-darwin-universal/Material\ Companion.app
+    - run: zip -r ./MaterialCompanion-macos-arm64.zip ./out/Material\ Companion-darwin-arm64/Material\ Companion.app
+    - run: zip -r ./MaterialCompanion-macos-x64.zip ./out/Material\ Companion-darwin-x64/Material\ Companion.app 
+    - run: zip -r ./MaterialCompanion-macos-universal.zip ./out/Material\ Companion-darwin-universal/Material\ Companion.app
     - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
     - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-x64.dmg ./MaterialCompanion-macos-x64.dmg
     - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-universal.dmg ./MaterialCompanion-macos-universal.dmg
