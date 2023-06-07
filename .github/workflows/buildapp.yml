@@ -58,14 +58,17 @@ jobs:
     - run: npm run make -- --arch arm64
     - run: ls -hl ./out
     - run: ls -hl ./out/Material\ Companion-darwin-arm64
+    - run: ls -hl ./out/make
 
     - run: npm run make -- --arch x64
     - run: ls -hl ./out
     - run: ls -hl ./out/Material\ Companion-darwin-x64
+    - run: ls -hl ./out/make
 
     - run: npm run make -- --arch universal
     - run: ls -hl ./out
     - run: ls -hl ./out/Material\ Companion-darwin-universal
+    - run: ls -hl ./out/make
     #- run: mv ./out/Material\ Companion-darwin-x64.dmg ./MaterialCompanion-macos-x64.dmg
     - run: mv ./out/Material\ Companion-darwin-arm64/Material\ Companion.app ./MaterialCompanion-macos-arm64.app
     - run: mv ./out/Material\ Companion-darwin-x64/Material\ Companion.app ./MaterialCompanion-macos-x64.app
