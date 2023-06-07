@@ -53,12 +53,7 @@
         },
         {
           "name": "@electron-forge/maker-dmg",
-          "config": {},
-          "platforms": [
-            [
-              "darwin"
-            ]
-          ]
+          "config": {}
         }
       ]
     }
