@@ -39,8 +39,8 @@ jobs:
         tag: ${{ github.event.release.tag_name }}
         body: ${{ github.event.release.body }}
 
-  build_for_mac_x64:
-    runs-on: macOS-latest
+  build_for_mac:
+    runs-on: macOS-13
     steps:
     # checkout branch
     - uses: actions/checkout@v3
@@ -63,44 +63,6 @@ jobs:
       run: npm run build -production
     - run: ls -hl ./dist
     - run: mv ./dist/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}.dmg ./MaterialCompanion-macos-x64.dmg
-    - run: ls -hl
-
-    # Create a release for this specific version
-    - name: Update Release with Files
-      id: create_version_release
-      uses: ncipollo/release-action@v1
-      with:
-        allowUpdates: true # Set this to false if you want to prevent updating existing releases
-        name: ${{ github.event.release.name }}
-        draft: ${{ github.event.release.unpublished }}
-        prerelease: ${{ github.event.release.prerelease }}
-        token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: './MaterialCompanion-macos-x64.dmg'
-        tag: ${{ github.event.release.tag_name }}
-        body: ${{ github.event.release.body }}
-  build_for_mac_arm64:
-    runs-on: macos-13
-    steps:
-    # checkout branch
-    - uses: actions/checkout@v3
-
-    # install node
-    - uses: actions/setup-node@master
-      with:
-        node-version: 18.16
-
-    - id: get_version
-      uses: battila7/get-version-action@v2
-
-    - run: npm update
-    - run: npm install
-    - name: Build app
-      env:
-        ELECTRON: true
-        APP_VERSION_NUMBER: 0.5.9
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npm run build -production
-    - run: ls -hl ./dist
     - run: mv ./dist/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
     - run: ls -hl
 
@@ -114,7 +76,7 @@ jobs:
         draft: ${{ github.event.release.unpublished }}
         prerelease: ${{ github.event.release.prerelease }}
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: './MaterialCompanion-macos-arm64.dmg'
+        artifacts: './MaterialCompanion-macos-x64.dmg, ./MaterialCompanion-macos-arm64.dmg'
         tag: ${{ github.event.release.tag_name }}
         body: ${{ github.event.release.body }}
         
