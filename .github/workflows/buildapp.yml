@@ -62,7 +62,17 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: npm run make --arch=x64 --platform=darwin --omit=dev
     - run: ls -hl ./out
-    - run: mv ./out/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}.dmg ./MaterialCompanion-macos-x64.dmg
+    - run: mv ./out/Material\ Companion-macos-x64.dmg ./MaterialCompanion-macos-x64.dmg
+    - run: ls -hl
+
+    - name: Build app
+      env:
+        ELECTRON: true
+        APP_VERSION_NUMBER: 0.5.9
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npm run make --arch=arm64 --platform=darwin --omit=dev
+    - run: ls -hl ./out
+    - run: mv ./out/Material\ Companion-macos-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
     - run: ls -hl
 
     # Create a release for this specific version
@@ -95,12 +105,7 @@ jobs:
 
     - run: npm update
     - run: npm install
-    - name: Build app
-      env:
-        ELECTRON: true
-        APP_VERSION_NUMBER: 0.5.9
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npm run make --arch=arm64 --platform=darwin --omit=dev
+    - run: npm run make --arch=arm64 --platform=darwin --omit=dev
     - run: ls -hl ./out
     - run: mv ./dist/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
     - run: ls -hl
@@ -138,9 +143,9 @@ jobs:
       - run: ls -hl ./out
       - run: ls -hl ./out/Material\ Companion-linux-x64
       #- run: mv ./dist/material-companion_1.0.0_amd64.deb ./MaterialCompanion-linux-x64.deb
-      #- run: zip -j ./MaterialCompanion-linux-x64.zip ./dist/linux-unpacked/*
+      - run: zip -j ./MaterialCompanion-linux-x64.zip ./out/Material\ Companion-linux-x64/*
       #- run: ls -hl
-      - run: mv ./dist/material-companion-${{ steps.get_version.outputs.version-without-v }}.zip ./MaterialCompanion-linux-x64.zip
+      #- run: mv ./dist/material-companion-${{ steps.get_version.outputs.version-without-v }}.zip ./MaterialCompanion-linux-x64.zip
       - run: ls
 
       # Create a release for this specific version
