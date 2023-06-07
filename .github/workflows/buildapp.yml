@@ -21,7 +21,7 @@ jobs:
     - run: npm install
     - run: npm run package --omit=dev
     - run: ls ./out
-    - run: Compress-Archive -Path ./out/Material Companion-win32-x64/* -Destination MaterialCompanion-win32-x64.zip
+    - run: Compress-Archive -Path ./out/Material\ Companion-win32-x64/* -Destination MaterialCompanion-win32-x64.zip
     #- run: move ./dist/Material\ Companion-1.0.0-win.zip ./MaterialCompanion-win32-x64.zip
     - run: ls
 
@@ -62,7 +62,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: npm run make --arch=x64 --platform=darwin --omit=dev
     - run: ls -hl ./out
-    - run: mv ./out/Material\ Companion-macos-x64.dmg ./MaterialCompanion-macos-x64.dmg
+    - run: mv ./out/Material\ Companion-darwin-x64.dmg ./MaterialCompanion-macos-x64.dmg
     - run: ls -hl
 
     - name: Build app
@@ -72,7 +72,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: npm run make --arch=arm64 --platform=darwin --omit=dev
     - run: ls -hl ./out
-    - run: mv ./out/Material\ Companion-macos-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
+    - run: mv ./out/Material\ Companion-darwin-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
     - run: ls -hl
 
     # Create a release for this specific version
@@ -86,41 +86,6 @@ jobs:
         prerelease: ${{ github.event.release.prerelease }}
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: './MaterialCompanion-macos-x64.dmg'
-        tag: ${{ github.event.release.tag_name }}
-        body: ${{ github.event.release.body }}
-
-  build_for_mac_arm64:
-    runs-on: macOS-13
-    steps:
-    # checkout branch
-    - uses: actions/checkout@v3
-
-    # install node
-    - uses: actions/setup-node@master
-      with:
-        node-version: 18.16
-
-    - id: get_version
-      uses: battila7/get-version-action@v2
-
-    - run: npm update
-    - run: npm install
-    - run: npm run make --arch=arm64 --platform=darwin --omit=dev
-    - run: ls -hl ./out
-    - run: mv ./dist/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
-    - run: ls -hl
-
-    # Create a release for this specific version
-    - name: Update Release with Files
-      id: create_version_release
-      uses: ncipollo/release-action@v1
-      with:
-        allowUpdates: true # Set this to false if you want to prevent updating existing releases
-        name: ${{ github.event.release.name }}
-        draft: ${{ github.event.release.unpublished }}
-        prerelease: ${{ github.event.release.prerelease }}
-        token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: './MaterialCompanion-macos-arm64.dmg'
         tag: ${{ github.event.release.tag_name }}
         body: ${{ github.event.release.body }}
 
