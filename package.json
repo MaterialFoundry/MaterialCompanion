@@ -67,8 +67,6 @@
         {
           "name": "@electron-forge/maker-dmg",
           "config": {
-            "background": "./src/app/images/MaterialFoundry.jpg",
-            "format": "ULFO"
           }
           }
       ]
