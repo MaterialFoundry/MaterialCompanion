@@ -55,14 +55,17 @@ jobs:
 
     - run: npm update
     - run: npm install
-    - name: Build app
-      env:
-        ELECTRON: true
-        APP_VERSION_NUMBER: 0.5.9
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: npm run make -- --arch arm64
+    - run: npm run make -- --arch arm64
+    - run: ls -hl ./out
+    - run: ls -hl ./out/Material\ Companion-darwin-arm64
+
+    - run: npm run make -- --arch x64
     - run: ls -hl ./out
     - run: ls -hl ./out/Material\ Companion-darwin-x64
+
+    - run: npm run make -- --arch universal
+    - run: ls -hl ./out
+    - run: ls -hl ./out/Material\ Companion-darwin-universal
     #- run: mv ./out/Material\ Companion-darwin-x64.dmg ./MaterialCompanion-macos-x64.dmg
     - run: ls -hl
 
