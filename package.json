@@ -27,6 +27,18 @@
       "packagerConfig": {
         "icon": "src/app/images/icons"
       },
+      "make-target": {
+        "win32": [
+          "zip"
+        ],
+        "darwin": [
+          "dmg",
+          "zip"
+        ],
+        "linux": [
+          "zip"
+        ]
+      },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
@@ -38,6 +50,7 @@
           "name": "@electron-forge/maker-zip",
           "platforms": [
             [
+              "win32",
               "darwin",
               "linux"
             ]

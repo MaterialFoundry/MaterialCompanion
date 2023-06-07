@@ -55,7 +55,7 @@ jobs:
 
     - run: npm update
     - run: npm install
-    - run: npm run make -- --arch arm64 --targets @electron-forge/maker-dmg
+    - run: npm run make -- --arch arm64
     - run: ls -hl ./out
     - run: ls -hl ./out/Material\ Companion-darwin-arm64
 
