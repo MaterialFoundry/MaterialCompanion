@@ -62,7 +62,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: npm run make --arch=x64 --platform=darwin --omit=dev
     - run: ls -hl ./out
-    - run: mv ./out/Material\ Companion-darwin-x64.dmg ./MaterialCompanion-macos-x64.dmg
+    - run: ls -hl ./out/Material\ Companion-darwin-x64
+    #- run: mv ./out/Material\ Companion-darwin-x64.dmg ./MaterialCompanion-macos-x64.dmg
     - run: ls -hl
 
     - name: Build app
@@ -72,7 +73,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: npm run make --arch=arm64 --platform=darwin --omit=dev
     - run: ls -hl ./out
-    - run: mv ./out/Material\ Companion-darwin-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
+    - run: ls -hl ./out/Material\ Companion-darwin-arm64
+    #- run: mv ./out/Material\ Companion-darwin-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
     - run: ls -hl
 
     # Create a release for this specific version
