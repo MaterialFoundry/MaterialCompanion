@@ -19,8 +19,8 @@
   "scripts": {
     "start": "electron .",
     "start-forge": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make"
+    "package": "electron-forge package --omit=dev",
+    "make": "electron-forge make --omit=dev"
   },
   "config": {
     "forge": {
