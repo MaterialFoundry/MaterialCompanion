@@ -18,48 +18,58 @@
   ],
   "scripts": {
     "start": "electron .",
-    "postinstall": "install-app-deps",
-    "pack": "electron-builder --dir",
-    "build": "electron-builder --publish never"
+    "start-forge": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make --omit=dev"
   },
-  "build": {
-    "appId": "com.electron.materialcompanion",
-    "dmg": {
-      "contents": [
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "icon": "src/app/images/icons"
+      },
+      "make-target": {
+        "win32": [
+          "zip"
+        ],
+        "darwin": [
+          "dmg",
+          "zip"
+        ],
+        "linux": [
+          "zip"
+        ]
+      },
+      "makers": [
         {
-          "x": 110,
-          "y": 150
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "materialcompanion"
+          }
         },
         {
-          "x": 240,
-          "y": 150,
-          "type": "link",
-          "path": "/Applications"
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            [
+              "win32",
+              "darwin",
+              "linux"
+            ]
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-dmg",
+          "config": {
+          }
         }
       ]
-    },
-    "linux": {
-      "target": [
-        "zip"
-      ],
-      "icon": "src/app/images/icons/png",
-      "maintainer": "Material Foundry"
-    },
-    "win": {
-      "target": "zip",
-      "icon": "src/app/images/icons/win/icon.ico"
-    },
-    "mac": {
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
-      "icon": "src/app/images/icons/mac/icon.icns"
     }
   },
   "author": "Material Foundry <info@materialfoundry.nl>",
@@ -67,8 +77,12 @@
   "copyright": "Copyright © 2023 Material Foundry",
   "devDependencies": {
     "electron": "^25.0.1",
-    "electron-builder": "^24.4.0",
-    "electron-builder-squirrel-windows": "^24.4.0",
+    "@electron-forge/cli": "^6.1.1",
+    "@electron-forge/maker-deb": "^6.1.1",
+    "@electron-forge/maker-dmg": "^6.1.1",
+    "@electron-forge/maker-rpm": "^6.1.1",
+    "@electron-forge/maker-squirrel": "^6.1.1",
+    "@electron-forge/maker-zip": "^6.1.1",
     "electron-wix-msi": "^5.0.0"
   },
   "dependencies": {
