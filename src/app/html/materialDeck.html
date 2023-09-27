@@ -3,7 +3,7 @@
         <span class="tooltiptext">{{localize "MD.MODULECONNECTED.TOOLTIP"}}</span>
     </label>
     <div class="form-val">
-        <input class="moduleCB" type="checkbox" id="mdFoundryCb" disabled>
+        <input class="moduleCB" type="checkbox" id="MaterialDeck_Foundry2" disabled>
     </div>
 </div>
 
@@ -12,18 +12,50 @@
         <span class="tooltiptext">{{localize "MD.SDCONNECTED.TOOLTIP"}}</span>
     </label>
     <div class="form-val">
-        <input class="moduleCB" type="checkbox" id="mdDeviceCb" disabled>
+        <input class="moduleCB" type="checkbox" id="MaterialDeck_Device2" disabled>
     </div>
 </div>
 
-<h3 class="tooltip">{{localize "MD.DEVICES.LABEL"}}
-    <span class="tooltiptext">{{localize "MD.DEVICES.TOOLTIP"}}</span>
+<div id="mdClientsWrapper" style="display:none">
+    <hr>
+    <h3 class="tooltip">{{localize "MD.CLIENTS.LABEL"}}
+        <span class="tooltiptext">{{localize "MD.CLIENTS.TOOLTIP"}}</span>
     </h3>
-<table class="sdTable" id="sdTable">
-    <tr>
-        <th class="sdTable-Name">{{localize "NAME"}}</th>
-        <th class="sdTable-Type">{{localize "TYPE"}}</th>
-    </tr>
-    <div id="sdEntries"></div>
-    
-</table>
+    <table class="sdTable" id="materialDeckClientsTable">
+        <tr>
+            <th class="sdTable-Name">
+                <div class="tooltip">{{localize "MD.USERNAME.LABEL"}}
+                    <span class="tooltiptext">{{localize "MD.USERNAME.TOOLTIP"}}</span>
+                </div>
+            </th>
+            <th class="sdTable-Type">
+                <div class="tooltip">{{localize "MD.CONNECT_TO.LABEL"}}
+                    <span class="tooltiptext">{{localize "MD.CONNECT_TO.TOOLTIP"}}</span>
+                </div>
+            </th>
+        </tr>
+        <div id="sdEntries"></div>
+    </table>
+</div>
+
+<div id="mdDevicesWrapper" style="display:none">
+    <hr>
+    <h3 class="tooltip">{{localize "MD.DEVICES.LABEL"}}
+        <span class="tooltiptext">{{localize "MD.DEVICES.TOOLTIP"}}</span>
+    </h3>
+    <table class="sdTable" id="materialDeckDeviceTable">
+        <tr>
+            <th class="sdTable-Name">
+                <div class="tooltip">{{localize "MD.DEVICE_NAME.LABEL"}}
+                    <span class="tooltiptext">{{localize "MD.DEVICE_NAME.TOOLTIP"}}</span>
+                </div>
+            </th>
+            <th class="sdTable-Type">
+                <div class="tooltip">{{localize "MD.DEVICE_TYPE.LABEL"}}
+                    <span class="tooltiptext">{{localize "MD.DEVICE_TYPE.TOOLTIP"}}</span>
+                </div>
+            </th>
+        </tr>
+        <div id="sdEntries"></div>  
+    </table>
+</div>

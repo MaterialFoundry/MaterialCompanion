@@ -66,13 +66,37 @@
         <img src="images/MaterialFoundry.png">
     </div>
 
+    <!-- Popup -->
+    <div id="popup" class="modal">
+        <!-- Popup content -->
+        <div class="modal-content">
+            <span class="close" id="closePopup">&times;</span>
+            <span style="color:red; display:none" id="popupError"><h3><i class="fa-solid fa-triangle-exclamation"></i>&nbsp;Error</h3></span>
+            <div id="popupContent"></div>
+            <div id="popupDetails" style="display:none">
+                <div class="expandable" id="detailsHeader"><img src="images/arrow-right.png" class="expandableIcon" style="width:20px">Details</div>
+                <textArea class="collapsed updateDetails" id="popupDetailsContent" rows="10" cols="50" style="max-width:100%"></textArea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sensor update problem popup -->
+    <div id="errorPopup" class="modal">
+        <!-- Popup content -->
+        <div class="modal-content">
+            <span class="close" id="closeerrorPopup">&times;</span>
+            <span style="color:red"><h3><i class="fa-solid fa-triangle-exclamation"></i>&nbsp;Error</h3></span>
+            <div id="errorPopupContent"></div>
+        </div>
+    </div>
+
     <div class="mainBody">
         <!-- Tab links -->
         <div class="mainTab">
             <button class="mainTabLinks active" onclick="openTab(event, 'overviewTab')">{{localize "OVERVIEW"}}</button>
             <button class="mainTabLinks" onclick="openTab(event, 'materialPlaneTab')">Material Plane</button>
-            <button class="mainTabLinks" onclick="openTab(event, 'materialDeckTab')">Material Deck</button>
-            <button class="mainTabLinks" onclick="openTab(event, 'materialKeysTab')">Material Keys</button>
+            <!-- <button class="mainTabLinks" onclick="openTab(event, 'materialDeckTab')">Material Deck</button> -->
+            <!-- <button class="mainTabLinks" onclick="openTab(event, 'materialKeysTab')">Material Keys</button> -->
             <button class="mainTabLinks" onclick="openTab(event, 'settingsTab')">{{localize "SETTINGS"}}</button>
         </div>
 

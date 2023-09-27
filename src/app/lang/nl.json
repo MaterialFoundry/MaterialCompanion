@@ -18,6 +18,8 @@
     "WRITE": "Schrijf",
     "UPDATE": "Update",
     "UPLOAD": "Upload",
+    "CONNECT_TO": "Verbind Met",
+    "USERNAME": "Gebruikersnaam",
     
     "OVERVIEW.MCADDR.LABEL": "Material Companion Adres",
     "OVERVIEW.MCADDR.TOOLTIP": "Material Companion adres voor in Foundry.",

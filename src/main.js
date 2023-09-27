@@ -3,10 +3,14 @@ const path = require('path');
 const url = require('url');
 const packageJson = require('../package.json');
 const settings = require('electron-settings');
+const { initializeWebsocket } = require('./websocket')
+const { initializeMidi, getAllowedMkDevices } = require('./modules/materialKeys')
 
 console.log(`Starting Material Companion v${packageJson.version}`);
 
 process.env['ELECTRON_DISABLE_SECURITY_WARNINGS'] = 'true';
+
+let win;
 
 const defaultSettings = {
     language: 'en',
@@ -14,7 +18,11 @@ const defaultSettings = {
     runInTray: false,
     mpComPort: "",
     dockComPort: "",
-    enableMpUsb: false
+    enableMpUsb: false,
+    clientData: [],
+    autoScanUsb: false,
+    autoScanMidi: true,
+    blockedMkDevices: []
 }
 
 setDefaultSettings();
@@ -26,14 +34,16 @@ async function setDefaultSettings(force = false) {
 }
 
 app.whenReady().then(() => {
-    createWindow()
+    createWindow();
+    initializeWebsocket(win);
+    initializeMidi(win);
 })
 
 const createWindow = () => {
     //Create window
-    const win = new BrowserWindow({
+    win = new BrowserWindow({
         width: 800,
-        height: 600,
+        height: 800,
         icon: path.join(__dirname, 'app', 'images', 'icons', 'png','48x48.png'),
         backgroundColor: '#4f4f4f',
         webPreferences: {
@@ -59,7 +69,13 @@ const createWindow = () => {
             else win.webContents.closeDevTools();
         }
         if (input.type == 'keyDown' && input.key == 'F5') {
-            win.reload();
+            win.webContents.send('asynchronous-message', {
+                type: 'refreshWindow'
+            });
+            setTimeout(() => {
+                win.reload();
+                initializeWebsocket(win);
+            }, 100)
         }
     });
 
@@ -91,4 +107,9 @@ ipcMain.handle('defaultSettings', async (event) => {
     console.log('Resetting settings')
     await setDefaultSettings(true);
     relaunchApp();
+});
+
+ipcMain.handle('getData', async (event, key) => {
+    console.log('getData',key); 
+    return getAllowedMkDevices();
 });

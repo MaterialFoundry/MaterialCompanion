@@ -1,9 +1,9 @@
 <!-- Tab links -->
 <div class="mpTab">
-    <button class="mpTabLinks active" onclick="openMpTab(event, 'materialPlaneConnectionTab')">{{localize "CONNECTION"}}</button>
-    <button class="mpTabLinks" onclick="openMpTab(event, 'materialPlaneSensorTab')">{{localize "MP.SENSOR"}}</button>
-    <button class="mpTabLinks" onclick="openMpTab(event, 'materialPlaneBaseTab')">{{localize "MP.BASE"}}</button>
-    <button class="mpTabLinks" onclick="openMpTab(event, 'materialPlanePenTab')">{{localize "MP.Pen"}}</button>
+    <!-- <button class="mpTabLinks active" onclick="openMpTab(event, 'materialPlaneConnectionTab')">{{localize "CONNECTION"}}</button> -->
+    <button class="mpTabLinks active" onclick="openMpTab(event, 'materialPlaneSensorTab')">{{localize "MP.SENSOR"}}</button>
+    <button class="mpTabLinks" id="baseTabLink" onclick="openMpTab(event, 'materialPlaneBaseTab')">{{localize "MP.BASE"}}</button>
+    <button class="mpTabLinks" id="penTabLink" onclick="openMpTab(event, 'materialPlanePenTab')">{{localize "MP.Pen"}}</button>
 </div>
 
 <!------------------------------------------------------------------------------------------------->
@@ -15,7 +15,7 @@
             <span class="tooltiptext">{{localize "MP.MODULE_CONNECTED.TOOLTIP"}}</span>
         </label>
         <div class="form-val">
-            <input class="moduleCB" type="checkbox" id="mpFoundryCb" disabled>
+            <input class="moduleCB" type="checkbox" id="MaterialPlane_Foundry2" disabled>
         </div>
     </div>
 
@@ -24,7 +24,7 @@
             <span class="tooltiptext">{{localize "MP.SENSOR_CONNECTED.TOOLTIP"}}</span>
         </label>
         <div class="form-val">
-            <input class="moduleCB" type="checkbox" id="mpDeviceCb" disabled>
+            <input class="moduleCB" type="checkbox" id="MaterialPlane_Device2" disabled>
         </div>
     </div>
 
@@ -44,6 +44,7 @@
         <div class="form-val">
             <select id="comPort"></select>
             <button type="button" id="refreshComPort"><i class="fa-solid fa-rotate"></i></button>
+            <button type="button" id="connectComPort">{{localize "CONNECT"}}</button>
         </div>
     </div>
 </div>
@@ -51,6 +52,7 @@
 <!------------------------------------------------------------------------------------------------->
 <!--                                          Sensor                                             -->
 <!------------------------------------------------------------------------------------------------->
+
 <div id="materialPlaneSensorTab" class="mpTabContent">
     <div class="form-elements">
         <label class="tooltip">{{localize "MP.SENSOR_USB.LABEL"}}
@@ -62,12 +64,125 @@
         </div>
     </div>
 
+    <hr>
+    <h3>{{localize "CONFIGURE"}}</h3>
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_VARIANT.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_VARIANT.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val mpConf">
+            <label id="sensorVariant">[placeholder]</label>
+        </div>
+    </div>
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_FIRMWARE.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_FIRMWARE.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val mpConf">
+            <label id="sensorFirmwareVer">[placeholder]</label>
+        </div>
+    </div>
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_WEBSERVER.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_WEBSERVER.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val mpConf">
+            <label id="sensorWebserverVer">[placeholder]</label>
+        </div>
+    </div>
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_WIFICONNECTED.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_WIFICONNECTED.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val">
+            <input class="moduleCB" type="checkbox" id="sensorWiFiConnected" disabled>
+        </div>
+    </div>
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_SSID.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_SSID.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val mpConf">
+            <label id="sensorSSID">[placeholder]</label>
+        </div>
+    </div>
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_IP.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_IP.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val mpConf">
+            <label id="sensorIP">[placeholder]</label>
+        </div>
+    </div>
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_WEBSERVERLINK.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_WEBSERVERLINK.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val mpConf">
+            <label id="sensorWebserver">[placeholder]</label>
+        </div>
+    </div>
+
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_CONNECT.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_CONNECT.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val">
+            <button type="button" id="connectWiFiBtn">{{localize "CONNECT"}}</button>
+        </div>
+    </div>
+
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_READ.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_READ.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val">
+            <button type="button" id="readSensorConfig">{{localize "READ"}}</button>
+        </div>
+    </div>
+
+    <hr>
+    <h3>{{localize "UPDATE"}}</h3>
+
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_VARIANT.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_VARIANT.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val">
+            <select id="sensorVariantUpload">
+                <option value="Production">Production</option>
+                <option value="DIY Full">DIY Full</option>
+                <option value="DIY Basic">DIY Basic</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SELECT_VERSION.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SELECT_VERSION.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val">
+            <select id="sensorVersionList">
+            </select>
+        </div>
+    </div>
+
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SELECT_WS_VERSION.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SELECT_WS_VERSION.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val">
+            <select id="sensorWsVersionList">
+            </select>
+        </div>
+    </div>
+    
     <div class="form-elements">
         <label class="tooltip">{{localize "MP.UPDATE.LABEL"}}
             <span class="tooltiptext">{{localize "MP.UPDATE.TOOLTIP"}}</span>
         </label>
         <div class="form-val">
-            <button type="button" id="updateSensorFirmware">{{localize "MP.UPDATE.LABEL"}}</button>
+            <button type="button" id="updateSensorFirmware">{{localize "UPDATE"}}</button>
         </div>
     </div>
 </div>
@@ -134,24 +249,9 @@
         </label>
         <div class="form-val">
             <select id="baseVersionList">
-                <option value="upload">{{localize "MP.UPLOADFILE"}}</option>
             </select>
         </div>
     </div>
-
-    <form method='POST' action='#' enctype='multipart/form-data' id='baseUploadForm'>
-        <div class="form-elements">
-            <label class="tooltip">{{localize "MP.FILE.LABEL"}}
-                <span class="tooltiptext">{{localize "MP.FILE.TOOLTIP"}}</span>
-            </label>
-            <div class="mpFileUploadWrapper">
-                <label for="baseFirmware" class="mpFileUpload">
-                    <i class="fa fa-cloud-upload"></i>{{localize "UPLOAD"}}
-                </label>
-                <input id="baseFirmware" style="display:none" type="file"/>
-            </div>
-        </div>
-    </form>
     
     <div class="form-elements">
         <label class="tooltip">{{localize "MP.UPDATE.LABEL"}}
@@ -225,24 +325,9 @@
         </label>
         <div class="form-val">
             <select id="penVersionList">
-                <option value="upload">{{localize "MP.UPLOADFILE"}}</option>
             </select>
         </div>
     </div>
-
-    <form method='POST' action='#' enctype='multipart/form-data' id='penUploadForm'>
-        <div class="form-elements">
-            <label class="tooltip">{{localize "MP.FILE.LABEL"}}
-                <span class="tooltiptext">{{localize "MP.FILE.TOOLTIP"}}</span>
-            </label>
-            <div class="mpFileUploadWrapper">
-                <label for="penFirmware" class="mpFileUpload">
-                    <i class="fa fa-cloud-upload"></i>{{localize "UPLOAD"}}
-                </label>
-                <input id="penFirmware" style="display:none" type="file"/>
-            </div>
-        </div>
-    </form>
     
     <div class="form-elements">
         <label class="tooltip">{{localize "MP.UPDATE.LABEL"}}

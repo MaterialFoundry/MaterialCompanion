@@ -6,11 +6,12 @@ body {
     display:flex;
     flex-direction: column;
     margin: 0;
+    overflow: hidden;
 }
 
 .mainBody {
     position: relative;
-    overflow: auto;
+    overflow: hidden;
     flex-grow: 1;
 }
 
@@ -50,7 +51,6 @@ body {
  .mainTab,
  .mpTab {
     overflow: hidden;
-    
     display: flex;
     flex-direction: row;
   }
@@ -88,6 +88,7 @@ body {
     height: 100%;
   } 
 
+
   .form-elements {
     width: 100%;
     display: flex;
@@ -112,11 +113,20 @@ body {
 .form-elements .form-val input[type='number'],
 .form-elements .form-val select,
 .form-elements .form-val input[type='file'],
+.form-elements .form-val label,
 .form-elements .form-val .mpFileUpload,
 .mpFileUploadWrapper {
   flex-grow: 4;
   background-color: #2d3058;
   color: white;
+}
+
+.form-elements .form-val label {
+  border: 1px solid rgb(173, 173, 173);
+  color: #2d3058;
+  min-height: 100%;
+  font-size: 0.9em;
+  padding: 3px;
 }
 
 .mpFileUploadWrapper {
@@ -151,7 +161,8 @@ body {
 .tooltip {
     position: relative;
     display: inline-block;
-    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+    
+    cursor: default;
   }
   
   /* Tooltip text */
@@ -182,6 +193,20 @@ body {
 .sdTable,
 .mkTable {
     width: 100%;
+    cursor: default;
+}
+
+.sdTable-Name {
+  text-align: left;
+  width: 50%;
+}
+
+.sdTable-Type {
+  text-align: left;
+}
+
+.mkTable-Data {
+  text-align: left;
 }
 
 .connTable tr,
@@ -226,4 +251,98 @@ body {
 .cbUnchecked {
   content: '✘';
   color: red;
+}
+
+.mdDevice,
+.mkDevice {
+  background-color: #2d3058;
+  color: white;
+  display: inline-block;
+  border: 2px solid green;
+  padding: 3px;
+  margin: 2px;
+  border-radius: 7.5px;
+  font-size: 0.75em;
+  cursor: pointer;
+}
+
+.blocked {
+  border: 2px solid red;
+}
+
+.notConnected {
+  border: 2px solid rgb(59, 59, 59);
+  cursor: default;
+}
+
+.validDevice {
+  border: 2px solid orange;
+}
+
+select,
+button,
+input[type='checkbox']:not(:disabled) {
+  cursor: pointer;
+}
+
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  margin: auto;
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #2d3058;
+  border-width: 2px;
+  border-color: #10111f;
+  border-radius: 10px;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  width: 80%; /* Could be more or less, depending on screen size */
+  max-width: 400px;
+}
+
+ /* The Close Button */
+ .close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+} 
+
+.notes {
+  font-size: 0.8em;
+}
+
+.expandable {
+  cursor: pointer;
+}
+
+.collapsed {
+  display:none;
+}
+
+.updateDetails {
+  max-width: 100px;
+}
+
+.popupContent {
+  max-width: 100%;
 }
