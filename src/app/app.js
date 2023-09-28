@@ -17,7 +17,7 @@ var dockPort = new SerPort('Dock',popup);
 
 const startLogo = {
     enable: true,
-    static: 0000,
+    static: 2000,
     fadeout: 500
 }
 
