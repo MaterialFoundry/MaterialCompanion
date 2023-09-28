@@ -86,7 +86,7 @@ jobs:
         draft: ${{ github.event.release.unpublished }}
         prerelease: ${{ github.event.release.prerelease }}
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: './MaterialCompanion-macos-arm64.dmg, ./MaterialCompanion-macos-x64.dmg, ./MaterialCompanion-macos-arm64.zip, ./MaterialCompanion-macos-x64.zip
+        artifacts: './MaterialCompanion-macos-arm64.dmg, ./MaterialCompanion-macos-x64.dmg, ./MaterialCompanion-macos-arm64.zip, ./MaterialCompanion-macos-x64.zip'
         tag: ${{ github.event.release.tag_name }}
         body: ${{ github.event.release.body }}
 
