@@ -154,6 +154,23 @@ class MaterialPlane {
 
         sensorPort.scanSerialPorts();
         dockPort.scanSerialPorts();
+
+        this.installPymcuprog();
+    }
+
+    installPymcuprog() {
+        const python = spawn('pip', ['install', 'pymcuprog']);
+        let rec = [];
+        python.stdout.on('data', function (data) {
+            //let dataToSend = data.toString();
+            const str = String.fromCharCode.apply(null, new Uint16Array(data));
+            //console.log('Pipe data from pip',{data:str});
+            rec.push(str);
+        });
+        
+        python.on('close', (code) => {
+            console.log(`Pip closed with code: ${code}, data:`,{data:rec});
+        });
     }
 
     async readAttinyEeprom(port, device) {
