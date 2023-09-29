@@ -26,6 +26,7 @@ class MaterialPlane {
     pymcuprogInstalled = false;
     pythonInstalled = false;
     pipInstalled = false;
+    pythonCmd = window.navigator.platform == 'Win32' ? 'py' : 'python';
 
     init(sensorPort, dockPort) {
         /* COM ports*/
@@ -165,7 +166,7 @@ class MaterialPlane {
         return new Promise((resolve) => {
             console.log("Checking for python install")
 
-            const checkInstall = spawn('python', ['-V']);
+            const checkInstall = spawn(pythonCmd, ['-V']);
             let rec = [];
             checkInstall.stdout.on('data', function (data) {
                 const str = String.fromCharCode.apply(null, new Uint16Array(data));
@@ -237,8 +238,8 @@ class MaterialPlane {
 
         if (this.pymcuprogInstalled && this.pipInstalled) return true;
 
-        const pip = await this.runCommand('py', ['-m', 'pip', '--version']);
-        const pymcuprog = await this.runCommand('py', ['-m', 'pymcuprog.pymcuprog', '-V']);
+        const pip = await this.runCommand(pythonCmd, ['-m', 'pip', '--version']);
+        const pymcuprog = await this.runCommand(pythonCmd, ['-m', 'pymcuprog.pymcuprog', '-V']);
         this.pipInstalled = pip.success;
         this.pymcuprogInstalled = pymcuprog.success;
 
@@ -276,12 +277,12 @@ class MaterialPlane {
 
                 if (!parent.pipInstalled) {
                     popup.addDetails(`Installing pip.\n\n`);
-                    const pipInstall = await parent.runCommand('py',['-m', 'ensurepip', '--default-pip'])
+                    const pipInstall = await parent.runCommand(pythonCmd,['-m', 'ensurepip', '--default-pip'])
                     for (let m of pipInstall.data) popup.addDetails(`${m}\n`);
                 }
                 if (!parent.pymcuprogInstalled) {
                     popup.addDetails(`Installing pymcuprog.\n\n`);
-                    const pipInstall = await parent.runCommand('py',['-m', 'pip', 'install', 'pymcuprog'])
+                    const pipInstall = await parent.runCommand(pythonCmd,['-m', 'pip', 'install', 'pymcuprog'])
                     for (let m of pipInstall.data) popup.addDetails(`${m}\n`);
                 }
             });
@@ -294,7 +295,7 @@ class MaterialPlane {
         console.log(`Read ${device} EEPROM on port: ${port.path}`);
 
 
-        const ls = spawn('py', ['-m', 'pymcuprog.pymcuprog', 'read', '-m', 'eeprom', '-t', 'uart', '-u', port.path, '-d', 'attiny1616']);
+        const ls = spawn(pythonCmd, ['-m', 'pymcuprog.pymcuprog', 'read', '-m', 'eeprom', '-t', 'uart', '-u', port.path, '-d', 'attiny1616']);
 
         let parent = this;
         ls.stdout.on("data", data => {
@@ -429,7 +430,7 @@ class MaterialPlane {
                 return;
             }
 
-            ls = spawn('py', ['-m', 'pymcuprog.pymcuprog', 'write', '-f', firmwarePath, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug', '--verify', '--erase']);
+            ls = spawn(pythonCmd, ['-m', 'pymcuprog.pymcuprog', 'write', '-f', firmwarePath, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug', '--verify', '--erase']);
         }
         else if (mode == 'eeprom') {
             if (device == 'base') {
@@ -439,7 +440,7 @@ class MaterialPlane {
                     popup.error(msg, true);
                     return;
                 }
-                ls = spawn('py', ['-m', 'pymcuprog.pymcuprog', 'write', '-m', 'eeprom', '-o', '0x04', '-l', document.getElementById('baseId').value>>8, document.getElementById('baseId').value&0xFF,document.getElementById('baseSens').value, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
+                ls = spawn(pythonCmd, ['-m', 'pymcuprog.pymcuprog', 'write', '-m', 'eeprom', '-o', '0x04', '-l', document.getElementById('baseId').value>>8, document.getElementById('baseId').value&0xFF,document.getElementById('baseSens').value, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
             }
             else if (device == 'pen') {
                 if (document.getElementById('penId').value == '' || document.getElementById('penTimeout').value == '') {
@@ -448,11 +449,11 @@ class MaterialPlane {
                     popup.error(msg, true);
                     return;
                 }
-                ls = spawn('py', ['-m', 'pymcuprog.pymcuprog', 'write', '-m', 'eeprom', '-o', '0x04', '-l', document.getElementById('penId').value>>8, document.getElementById('penId').value&0xFF,'0xff','0xff',document.getElementById('penTimeout').value, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
+                ls = spawn(pythonCmd, ['-m', 'pymcuprog.pymcuprog', 'write', '-m', 'eeprom', '-o', '0x04', '-l', document.getElementById('penId').value>>8, document.getElementById('penId').value&0xFF,'0xff','0xff',document.getElementById('penTimeout').value, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
             }
         }
         else if (mode == 'defaultEeprom') {
-            ls = spawn('py', ['-m', 'pymcuprog.pymcuprog', 'write', '-m', 'eeprom', '-o', '0x04', '-l', '0xff','0xff','0xff','0xff','0xff','0xff', '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
+            ls = spawn(pythonCmd, ['-m', 'pymcuprog.pymcuprog', 'write', '-m', 'eeprom', '-o', '0x04', '-l', '0xff','0xff','0xff','0xff','0xff','0xff', '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
         }
         
         
@@ -682,7 +683,7 @@ class MaterialPlane {
         console.log(`Uploading data to sensor`);
         popup.addDetails(`Uploading data to sensor.\n`);
      
-        const python = spawn('py', cmd);
+        const python = spawn(pythonCmd, cmd);
         
         python.stdout.on('data', function (data) {
             dataToSend = data.toString();
