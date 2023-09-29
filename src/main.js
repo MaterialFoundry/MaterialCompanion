@@ -89,27 +89,27 @@ function relaunchApp() {
 }
 
 ipcMain.handle('restart', (event) => {
-    console.log('restarting');
+    //console.log('restarting');
     setTimeout(relaunchApp,1000);
 });
 
 ipcMain.handle('setSetting', async (event, key, value) => {
-    console.log('setSetting',key,value)
+    //console.log('setSetting',key,value)
     return await settings.set(key,value);
 });
 
 ipcMain.handle('getSetting', async (event, key) => {
-    console.log('getSetting',key)
+   // console.log('getSetting',key)
     return await settings.get(key);
 });
 
 ipcMain.handle('defaultSettings', async (event) => {
-    console.log('Resetting settings')
+    //console.log('Resetting settings')
     await setDefaultSettings(true);
     relaunchApp();
 });
 
 ipcMain.handle('getData', async (event, key) => {
-    console.log('getData',key); 
+   // console.log('getData',key); 
     return getAllowedMkDevices();
 });

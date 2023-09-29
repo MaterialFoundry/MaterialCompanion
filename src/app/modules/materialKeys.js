@@ -58,7 +58,7 @@ class MaterialKeys {
     async createTableDevice(device, allowedDevices, deviceType) {
         let html = '';
         const blockedDevices = await getSetting('blockedMkDevices');
-        console.log('client',client)
+        //console.log('client',client)
         let status = 'notConnected';
         let validDevices = allowedDevices.devices.filter(d => device.includes(d.id));
         if (validDevices.filter(d => device.includes(d.id)).length > 0) {

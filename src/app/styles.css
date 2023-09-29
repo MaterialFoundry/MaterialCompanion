@@ -346,3 +346,16 @@ input[type='checkbox']:not(:disabled) {
 .popupContent {
   max-width: 100%;
 }
+
+.popup-form-val {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.popupButton {
+  width: 150px;
+  margin-top: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+}

@@ -3,7 +3,7 @@ const { spawn } = require("child_process");
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const {openPopup, closePopup } = require("../misc.js")
-const axios = require('axios');
+const decompress = require("decompress");
 
 const https = require('https'); // or 'https' for https:// URLs
 
@@ -23,6 +23,9 @@ class MaterialPlane {
     sensorReleases = [];
     baseReleases = [];
     penReleases = [];
+    pymcuprogInstalled = false;
+    pythonInstalled = false;
+    pipInstalled = false;
 
     init(sensorPort, dockPort) {
         /* COM ports*/
@@ -154,34 +157,148 @@ class MaterialPlane {
 
         sensorPort.scanSerialPorts();
         dockPort.scanSerialPorts();
-
-        this.installPymcuprog();
     }
 
-    installPymcuprog() {
-        const python = spawn('pip', ['install', 'pymcuprog']);
-        let rec = [];
-        python.stdout.on('data', function (data) {
-            //let dataToSend = data.toString();
-            const str = String.fromCharCode.apply(null, new Uint16Array(data));
-            //console.log('Pipe data from pip',{data:str});
-            rec.push(str);
+    async checkPythonInstall() {
+        if (this.pythonInstalled) return true;
+
+        return new Promise((resolve) => {
+            console.log("Checking for python install")
+
+            const checkInstall = spawn('python', ['-V']);
+            let rec = [];
+            checkInstall.stdout.on('data', function (data) {
+                const str = String.fromCharCode.apply(null, new Uint16Array(data));
+               // console.log('Pipe data from python',{data:str}, str.length);
+                rec.push(str);
+            });
+            checkInstall.on('close', (code) => {
+                console.log(`Python closed with code: ${code}, data:`,{data:rec});
+                if (code != 0 || !rec[0].includes('Python 3')) {
+                    const popupContent = `
+                        <h2>Python Required</h2>
+                        To configure or update the base, pen or sensor you need to install <a class="hyperlink" href="https://www.python.org/" target="_blank">Python</a>.<br>
+                        <br>
+                        Please try again after installing.
+                    `
+                    popup.open(popupContent, false, false);
+                    console.log("Python not installed")
+                    resolve(false);
+                }
+                else {
+                    console.log("Python installed");
+                    resolve(true);
+                }
+                
+            });
+            checkInstall.on('error', (err) => {
+               // console.log('err',err);
+                const popupContent = `
+                    <h2>Python Required</h2>
+                    To configure or update the base, pen or sensor you need to install <a class="hyperlink" href="https://www.python.org/" target="_blank">Python</a>.<br>
+                    <br>
+                    Please try again after installing.
+                `
+                popup.open(popupContent, false, false);
+                resolve(false);
+            });
         });
-        
-        python.on('close', (code) => {
-            console.log(`Pip closed with code: ${code}, data:`,{data:rec});
+    }
+
+    async runCommand(cmd, args) {
+        return new Promise((resolve) => {
+            const checkInstall = spawn(cmd, args);
+            let d = [];
+            checkInstall.on('close', (code) => {
+                d.push(`Close: ${code}`)
+                popup.addDetails(`Close: ${code}\n`);
+                resolve({success:code == 0, data:d});
+            });
+            checkInstall.on('error', (err) => {
+                d.push(`err: ${err.toString()}`);
+                popup.addDetails(`err: ${err.toString()}\n`);
+                resolve({success:false, data:d});
+            });
+            checkInstall.stdout.on('data', function (data) {
+                const str = String.fromCharCode.apply(null, new Uint16Array(data));
+                popup.addDetails(`stdout: ${str}\n`);
+                d.push(`stdout: ${str}`);
+            });
+        });
+    }
+
+
+    async installPymcuprog() {
+        this.pythonInstalled = await this.checkPythonInstall();
+        if (!this.pythonInstalled) {
+
+            return false;
+        }
+
+        if (this.pymcuprogInstalled && this.pipInstalled) return true;
+
+        const pip = await this.runCommand('python', ['-m', 'pip', '--version']);
+        const pymcuprog = await this.runCommand('python', ['-m', 'pymcuprog.pymcuprog', '-V']);
+        this.pipInstalled = pip.success;
+        this.pymcuprogInstalled = pymcuprog.success;
+
+        if (this.pymcuprogInstalled && this.pipInstalled) return true;
+
+        let parent = this;
+
+        return new Promise((resolve) => {
+            const popupContent = `
+                <h2>Dependencies Required</h2>
+                To configure or update the base or pen you need to install <a class="hyperlink" href="https://pypi.org/project/pip/" target="_blank">pip</a> and <a class="hyperlink" href="https://github.com/microchip-pic-avr-tools/pymcuprog" target="_blank">pymcuprog</a>.<br>
+                <br>
+                Press 'Ok' to install or 'Cancel' to cancel.<br>
+                
+                <div class="popup-form-val">
+                    <button class="popupButton" id="installPymcuprog">Ok</button>
+                    <button class="popupButton" id="dontInstallPymcuprog">Cancel</button>
+                </div>
+            `
+            popup.open(popupContent, false, false);
+
+            document.getElementById("dontInstallPymcuprog").addEventListener('click', ()=> {
+                popup.close();
+                resolve(false);
+            });
+
+            document.getElementById("installPymcuprog").addEventListener('click', async()=> {
+                const popupContent = `
+                    <h2>Installing Dependencies</h2>
+                    Please wait.
+                `
+
+                popup.open(popupContent, false, true);
+                popup.clearDetails();
+
+                if (!parent.pipInstalled) {
+                    popup.addDetails(`Installing pip.\n\n`);
+                    const pipInstall = await parent.runCommand('python',['-m', 'ensurepip', '--default-pip'])
+                    for (let m of pipInstall.data) popup.addDetails(`${m}\n`);
+                }
+                if (!parent.pymcuprogInstalled) {
+                    popup.addDetails(`Installing pymcuprog.\n\n`);
+                    const pipInstall = await parent.runCommand('python',['-m', 'pip', 'install', 'pymcuprog'])
+                    for (let m of pipInstall.data) popup.addDetails(`${m}\n`);
+                }
+            });
         });
     }
 
     async readAttinyEeprom(port, device) {
+        if (await this.installPymcuprog() == false) return;
+
         console.log(`Read ${device} EEPROM on port: ${port.path}`);
 
 
-        const ls = spawn('pymcuprog', ['read', '-m', 'eeprom', '-t', 'uart', '-u', port.path, '-d', 'attiny1616']);
+        const ls = spawn('python', ['-m', 'pymcuprog.pymcuprog', 'read', '-m', 'eeprom', '-t', 'uart', '-u', port.path, '-d', 'attiny1616']);
 
         let parent = this;
         ls.stdout.on("data", data => {
-            console.log(`stdout: ${data}`);
+            //console.log(`stdout: ${data}`);
             const str = String.fromCharCode.apply(null, new Uint16Array(data));
 
             if (str.includes("Memory type: eeprom")) {
@@ -236,19 +353,25 @@ class MaterialPlane {
         //console.log(updateMessage)
         ls.stderr.on("data", data => {
             const str = String.fromCharCode.apply(null, new Uint16Array(data));
-            console.log(`stderr: ${data}`);   
+            //console.log(`stderr: ${data}`);   
+            popup.addDetails(`data: ${data}\n`);
         });
     
         ls.on('error', (error) => {
-            console.log(`error: ${error.message}`);
+           // console.log(`error: ${error.message}`);
+           popup.addDetails(`err: ${error}\n`);
         });
     
         ls.on("close", async code => {
-            console.log(`child process exited with code ${code}`);
+            //console.log(`child process exited with code ${code}`);
+            popup.addDetails(`close: ${code}\n`);
         });
 
     }
+
     async updateAttiny(port, device, mode='flash') {
+        if (await this.installPymcuprog() == false) return;
+
         console.log(`Update ${device} on port: ${port.path}`);
         let firmwarePath = "";
 
@@ -306,7 +429,7 @@ class MaterialPlane {
                 return;
             }
 
-            ls = spawn('pymcuprog', ['write', '-f', firmwarePath, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug', '--verify', '--erase']);
+            ls = spawn('python', ['-m', 'pymcuprog.pymcuprog', 'write', '-f', firmwarePath, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug', '--verify', '--erase']);
         }
         else if (mode == 'eeprom') {
             if (device == 'base') {
@@ -316,7 +439,7 @@ class MaterialPlane {
                     popup.error(msg, true);
                     return;
                 }
-                ls = spawn('pymcuprog', ['write', '-m', 'eeprom', '-o', '0x04', '-l', document.getElementById('baseId').value>>8, document.getElementById('baseId').value&0xFF,document.getElementById('baseSens').value, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
+                ls = spawn('python', ['-m', 'pymcuprog.pymcuprog', 'write', '-m', 'eeprom', '-o', '0x04', '-l', document.getElementById('baseId').value>>8, document.getElementById('baseId').value&0xFF,document.getElementById('baseSens').value, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
             }
             else if (device == 'pen') {
                 if (document.getElementById('penId').value == '' || document.getElementById('penTimeout').value == '') {
@@ -325,11 +448,11 @@ class MaterialPlane {
                     popup.error(msg, true);
                     return;
                 }
-                ls = spawn('pymcuprog', ['write', '-m', 'eeprom', '-o', '0x04', '-l', document.getElementById('penId').value>>8, document.getElementById('penId').value&0xFF,'0xff','0xff',document.getElementById('penTimeout').value, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
+                ls = spawn('python', ['-m', 'pymcuprog.pymcuprog', 'write', '-m', 'eeprom', '-o', '0x04', '-l', document.getElementById('penId').value>>8, document.getElementById('penId').value&0xFF,'0xff','0xff',document.getElementById('penTimeout').value, '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
             }
         }
         else if (mode == 'defaultEeprom') {
-            ls = spawn('pymcuprog', ['write', '-m', 'eeprom', '-o', '0x04', '-l', '0xff','0xff','0xff','0xff','0xff','0xff', '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
+            ls = spawn('python', ['-m', 'pymcuprog.pymcuprog', 'write', '-m', 'eeprom', '-o', '0x04', '-l', '0xff','0xff','0xff','0xff','0xff','0xff', '-t', 'uart', '-u', port.path, '-d', 'attiny1616', '-v', 'debug']);
         }
         
         
@@ -339,22 +462,22 @@ class MaterialPlane {
         let percentage = -1;
         let parent = this;
         ls.stdout.on("data", data => {
-            console.log(`stdout: ${data}`);
+           // console.log(`stdout: ${data}`);
             const str = String.fromCharCode.apply(null, new Uint16Array(data));
 
             if (data.includes('UPDI init OK')) {
-                console.log('UPDI init OK')
+               // console.log('UPDI init OK')
                 popup.addDetails('UPDI init OK.\n');
                 state = 'gettingInfo';
             }
             else if (data.includes('bytes of data to flash')) {
                 state = 'writingFlash';
                 flashSize = parseInt(str.split("- Writing ")[1].split(' ')[0]);
-                console.log(`Writing ${flashSize} bytes to flash.`);
+               // console.log(`Writing ${flashSize} bytes to flash.`);
                 popup.addDetails(`Writing ${flashSize} bytes to flash.\n`);
             }
             else if (data.includes('Write complete')) {
-                console.log("Writing done.")
+               // console.log("Writing done.")
                 popup.addDetails(`\nWriting Done.\n`);
                 state = 'writeComplete';
             }
@@ -369,13 +492,13 @@ class MaterialPlane {
                         document.getElementById("baseUpdateProgress").value = perc;
                         document.getElementById("baseUpdateProgressNum").innerHTML = perc + '%';
                         popup.addDetails(`.`);
-                        console.log(`Writing: ${perc}%`);
+                      //  console.log(`Writing: ${perc}%`);
                     } 
                 }
             }
             else if (data.includes('bytes from flash')) {
                 state = 'verifyFlash';
-                console.log("Verifying flash.");
+               // console.log("Verifying flash.");
                 popup.addDetails(`Verifying flash.\n`);
                 document.getElementById("popupProgressLabel").innerHTML = i18n.localize("MP.BASE_UPDATE.VERIFY_PROGRESS");
                 percentage = 0;
@@ -393,17 +516,17 @@ class MaterialPlane {
                         document.getElementById("baseUpdateProgress").value = perc;
                         document.getElementById("baseUpdateProgressNum").innerHTML = perc + '%';
                         for (let i=0; i<diff; i++) popup.addDetails(`.`);
-                        console.log(`Verifying: ${perc}%`);
+                      //  console.log(`Verifying: ${perc}%`);
                     } 
                 }
             }
             else if (state == 'verifyFlash' && data.includes('OK')) {
-                console.log("Verification done.")
+               // console.log("Verification done.")
                 popup.addDetails(`\nVerification Done.\n`);
                 state = 'verifyComplete';
             }
             else if (data.includes('Done') && ((state == 'verifyComplete' && mode == 'flash') || mode == 'eeprom' || mode == 'defaultEeprom')) {
-                console.log("Update done.")
+               // console.log("Update done.")
                 popup.addDetails(`\n\nUpdate Done\n`);
                 state = 'done';
                 document.getElementById("updatePopupContent").innerHTML = i18n.localize("MP.BASE_UPDATE.DONE");
@@ -430,15 +553,18 @@ class MaterialPlane {
         //console.log(updateMessage)
         ls.stderr.on("data", data => {
             const str = String.fromCharCode.apply(null, new Uint16Array(data));
-            console.log(`stderr: ${data}`);   
+            popup.addDetails(`stderr: ${str}\n`);
+            console.log(`data: ${data}`);   
         });
     
         ls.on('error', (error) => {
-            console.log(`error: ${error.message}`);
+            //console.log(`error: ${error.message}`);
+            popup.addDetails(`err: ${error}\n`);
         });
     
         ls.on("close", async code => {
-            console.log(`child process exited with code ${code}`);
+           // console.log(`child process exited with code ${code}`);
+            popup.addDetails(`close: ${code}\n`);
             if (device == 'base') parent.deleteFile(firmwarePath);
         });
     }
@@ -486,68 +612,52 @@ class MaterialPlane {
             errMsg = i18n.localize("MP.SENSOR_UPDATE.ERR_FILE");
         }
         if (err) {
-            console.warn(errMsg);
+           // console.warn(errMsg);
             popup.error(errMsg, true);
             popup.addDetails(errMsg);
             return;
         }
 
-        const esptoolPath = path.join(__dirname, 'materialPlane', 'esptool', 'esptool.py');
-        let firmwarePath = path.join(__dirname, 'materialPlane', 'firmware.bin');
-        let bootloaderPath = path.join(__dirname, 'materialPlane', 'bootloader.bin');
-        let app0Path = path.join(__dirname, 'materialPlane', 'boot_app0.bin');
-        let partitionsPath = path.join(__dirname, 'materialPlane', 'partitions.bin');
-        let webserverPath = path.join(__dirname, 'materialPlane', 'webserver.bin');
+        let folder = path.join(__dirname, 'materialPlane');
+        const esptoolPath = path.join(folder, 'esptool', 'esptool.py');
+        let zipPath = path.join(folder, 'firmware.zip');
+        let webserverPath = path.join(folder, 'webserver.bin');
+        let firmwarePath, bootloaderPath, app0Path, partitionsPath;
 
         let cmd = [esptoolPath, '--chip', hardwareVariant=='Production' ? 'esp32s3' : 'esp32', '-p', port.path, 'write_flash', '-z'];
 
         if (firmwareRelease != undefined) {
-            cmd.push('0x0',bootloaderPath,'0x8000',partitionsPath,'0xe000',app0Path,'0x10000',firmwarePath)
+ 
             popup.addDetails(`Downloading firmware file.\n`)
+            
             try {
-                await this.downloadFile(firmwareRelease.variants.find(r=> r.type == 'firmware').url, firmwarePath);
+                await this.downloadFile(firmwareRelease.variants.find(r=> r.variant == hardwareVariant).url, zipPath);
+
+                popup.addDetails(`Unzipping files.\n`)
+                try {
+                    await decompress(zipPath,folder).then((files) => {
+                        firmwarePath = path.join(folder, files.find(f => f.path.includes('irmware')).path);
+                        bootloaderPath = path.join(folder, files.find(f => f.path.includes('ootloader')).path);
+                        app0Path = path.join(folder, files.find(f => f.path.includes('app0')).path);
+                        partitionsPath = path.join(folder, files.find(f => f.path.includes('artitions')).path);
+
+                        cmd.push('0x0',bootloaderPath,'0x8000',partitionsPath,'0xe000',app0Path,'0x10000',firmwarePath)
+                    })
+                    
+                }
+                catch (err) {
+                    const msg = "Could not unzip firmware file.";
+                    popup.addDetails(msg + '\n');
+                    popup.error(msg, true);
+                   // console.warn(msg);
+                    return;
+                }
             }
             catch (err) {
                 const msg = "Could not download firmware.";
                 popup.addDetails(msg + '\n');
                 popup.error(msg, true);
-                console.warn(msg);
-                return;
-            }
-
-            popup.addDetails(`Downloading bootloader file.\n`)
-            try {
-                await this.downloadFile(firmwareRelease.variants.find(r=> r.type == 'bootloader').url, bootloaderPath);
-            }
-            catch (err) {
-                const msg = "Could not download bootloader.";
-                popup.addDetails(msg);
-                popup.error(msg, true);
-                console.warn(msg);
-                return;
-            }
-
-            popup.addDetails(`Downloading boot_app0 file.\n`)
-            try {
-                await this.downloadFile(firmwareRelease.variants.find(r=> r.type == 'boot_app0').url, app0Path);
-            }
-            catch (err) {
-                const msg = "Could not download boot_app0.";
-                popup.addDetails(msg + '\n');
-                popup.error(msg, true);
-                console.warn(msg);
-                return;
-            }
-
-            popup.addDetails(`Downloading partitions file.\n`)
-            try {
-                await this.downloadFile(firmwareRelease.variants.find(r=> r.type == 'partitions').url, partitionsPath);
-            }
-            catch (err) {
-                const msg = "Could not download partitions.";
-                popup.addDetails(msg + '\n');
-                popup.error(msg, true);
-                console.warn(msg);
+              //  console.warn(msg);
                 return;
             }
         }
@@ -563,12 +673,11 @@ class MaterialPlane {
                 const msg = "Could not download webserver.";
                 popup.addDetails(msg + '\n');
                 popup.error(msg, true);
-                console.warn(msg);
+                //console.warn(msg);
                 return;
             }
         }
-        
-        
+
         let dataToSend;
         console.log(`Uploading data to sensor`);
         popup.addDetails(`Uploading data to sensor.\n`);
@@ -578,7 +687,7 @@ class MaterialPlane {
         python.stdout.on('data', function (data) {
             dataToSend = data.toString();
             const str = String.fromCharCode.apply(null, new Uint16Array(data));
-            console.log('Pipe data from esptool',{data:str});
+            //console.log('Pipe data from esptool',{data:str});
             
             popup.addDetails(str);
 
@@ -586,11 +695,6 @@ class MaterialPlane {
 
             if (str.includes('Leaving')) {
                 document.getElementById("updatePopupContent").innerHTML = i18n.localize("MP.SENSOR_UPDATE.DONE");
-                //if (mode == 'webserver') perc = 100;
-                //if (firmwareRelease != undefined) {
-                    
-                //}
-                
             }
             if (!isNaN(perc) && perc >=0 && perc <= 100) {
                 if (perc == 100) perc = 99;
@@ -604,10 +708,11 @@ class MaterialPlane {
         });
         
         python.on('close', (code) => {
-            console.log(`Esptool closed with code: ${code}, data:`,{data:dataToSend});
+           // console.log(`Esptool closed with code: ${code}, data:`,{data:dataToSend});
             if (code != 0) {
-                popup.error(i18n.localize("MP.SENSOR_UPDATE.ERR"));
+                popup.error(i18n.localize("MP.SENSOR_UPDATE.ERR"), true);
             }
+            parent.deleteFile(zipPath);
             parent.deleteFile(firmwarePath);
             parent.deleteFile(bootloaderPath);
             parent.deleteFile(app0Path);
@@ -632,7 +737,7 @@ class MaterialPlane {
             // handle redirects
             if (code > 300 && code < 400 && !!response.headers.location) {
                 const msg = `Download redirected to: '${response.headers.location}'`;
-                console.log(msg)
+                //console.log(msg)
 
                 return resolve(
                     this.downloadFile(response.headers.location, targetFile)
@@ -640,14 +745,14 @@ class MaterialPlane {
             }
 
             const msg = `Downloading file from: '${url}' to: '${targetFile}'`;
-            console.log(msg)
+            //console.log(msg)
             //popup.addDetails('Downloading file\n');
       
             // save the file to disk
             const fileWriter = fs
               .createWriteStream(targetFile)
               .on('finish', () => {
-                console.log('Download done')
+               // console.log('Download done')
                 popup.addDetails('Download done.\n');
                 resolve({})
               })

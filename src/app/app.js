@@ -24,7 +24,7 @@ const startLogo = {
 window.i18n = new Localization();
 
 ipcRenderer.on('asynchronous-message', async function (evt, message) {
-    console.log('received from main: ',message); // Returns: {'SAVED': 'File Saved'}
+    //console.log('received from main: ',message); // Returns: {'SAVED': 'File Saved'}
 
     if (message.type == 'refreshWindow') {
         await sensorPort.closeSerialPort();
@@ -47,7 +47,7 @@ ipcRenderer.on('asynchronous-message', async function (evt, message) {
 });
 
 document.addEventListener("DOMContentLoaded", async function(){
-    console.log("window loaded")
+   // console.log("window loaded")
 
     if (startLogo.enable) {
         const stepLength = 10;  //ms

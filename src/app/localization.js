@@ -11,8 +11,7 @@ class Localization {
     async setLanguage(lang) {
             this.languages = packageJson.languages;
             this.language = this.languages.find(l => l.lang === lang)
-            console.log(`Setting language to ${this.language.name}`);
-            console.log("Packagedata",this.language)
+            console.log(`Setting language to ${this.language.name}: `, this.language)
     
             await fetch(this.language.path)
                 .then((response) => response.json())

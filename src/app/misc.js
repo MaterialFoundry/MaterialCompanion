@@ -2,18 +2,18 @@ const { ipcRenderer } = require('electron');
 
 async function getSetting(setting) {
     const value = await ipcRenderer.invoke('getSetting',setting);
-    console.log('getSetting',setting,value)
+    //console.log('getSetting',setting,value)
     return value;
 }
 
 async function setSetting(setting, value) {
-    console.log('setSetting',setting,value)
+    //console.log('setSetting',setting,value)
     await ipcRenderer.invoke('setSetting', setting, value);
 }
 
 async function getDataFromMain(id) {
     const value = await ipcRenderer.invoke('getData',id);
-    console.log('getSetting',id,value)
+    //console.log('getSetting',id,value)
     return value;
 }
 
