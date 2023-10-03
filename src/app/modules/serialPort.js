@@ -82,6 +82,7 @@ class SerPort {
         else {
             this.selectedPort = ports[0];
         }
+        if (popup == undefined) return ports;
         if (this.type == "Sensor") {
             this.updateSerialPortElmnt(serialports, "comPort");
             this.updateSerialPortElmnt(serialports, "sensorComPort");
@@ -90,6 +91,7 @@ class SerPort {
             this.updateSerialPortElmnt(serialports, "baseComPort");
             this.updateSerialPortElmnt(serialports, "penComPort");
         }
+        return ports;
     }
 
     getSerialPort() {

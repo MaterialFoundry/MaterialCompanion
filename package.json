@@ -1,7 +1,7 @@
 {
   "name": "material-companion",
   "productName": "Material Companion",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Companion app for the Material Foundry modules and hardware",
   "main": "src/main.js",
   "languages": [
@@ -18,6 +18,7 @@
   ],
   "scripts": {
     "start": "electron .",
+    "start-dev": "electron . dev",
     "start-forge": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make --omit=dev"

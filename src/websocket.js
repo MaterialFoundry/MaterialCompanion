@@ -1,11 +1,16 @@
 const WebSocket = require('ws');
 const settings = require('electron-settings');
 const { app, ipcMain } = require('electron');
+const { materialPlaneWsClient, materialPlaneSerial } = require('./modules/materialPlane');
+
+
 
 let win;
 let connections = [];
 let wss;
 let mdClients = [];
+let mpClient;
+let mpSerial;
 
 ipcMain.handle('sendWs', async(event, ...args) => {
     console.log('sendWs',event,...args);
@@ -17,6 +22,7 @@ function sendToRenderer(type,data) {
 }
 
 async function initializeWebsocket(window, eventEm) {
+    
     if (wss != undefined) {
         console.log('websocket already open, terminating all connections');
         await wss.clients.forEach((socket) => {
@@ -32,7 +38,10 @@ async function initializeWebsocket(window, eventEm) {
           });
         await wss.close();
         wss = undefined;
+        mpClient.close();
+        mpClient = undefined;
     }
+    
     win = window
     eventEmitter = eventEm;
     version = app.getVersion();
@@ -41,6 +50,10 @@ async function initializeWebsocket(window, eventEm) {
     console.log(`Starting websocket on port ${port}`)
     sendToRenderer('notification',`Starting websocket on port ${port}`)
     wss = new WebSocket.WebSocketServer({ port });
+    setTimeout(()=> {
+        mpClient = new materialPlaneWsClient(wss, window);
+        mpSerial = new materialPlaneSerial(window);
+    },100);
     
     /*
     * Do when a new websocket connection is made
@@ -86,8 +99,7 @@ async function initializeWebsocket(window, eventEm) {
                 userName
             });
             
-            //console.log('test',conn);
-           // connections = connections.filter(c => c.module != target);
+            connections = connections.filter(c => c.module != target);
             
             /*
             if (target == "MK"){
@@ -153,13 +165,15 @@ async function initializeWebsocket(window, eventEm) {
     * Broadcast message over websocket to all connected clients
     */
     wss.broadcast = async function broadcast(data, target, source) {
-        sendToRenderer('wsBroadcast',{data,target,source});
+        //sendToRenderer('wsBroadcast',{data,target,source});
         const msg = JSON.stringify(data);
         let conn = connections.filter(c => c.source == target);
         let clientData = [];
         if (target == 'MaterialDeck_Foundry' || target == 'MaterialDeck_Device') clientData = await settings.get('clientData');
 
         for (let connection of conn) {
+            if (connection.source != target && connection.target != source) continue;
+            //console.log('connection',connection)
             if (target == 'MaterialDeck_Foundry' && data.device != undefined) {
                 const user = clientData.find(c => c.userId == connection.userId);
                 if (user.materialDeck.blockedDevices.indexOf(data.device) != -1) continue;
@@ -209,6 +223,9 @@ function analyzeWebsocketMessage(msg) {
     else if (msg.source == 'MaterialDeck_Foundry') {
 
     }
+    else if (msg.source == 'MaterialPlane_Foundry') {
+        
+    }
 }
 
 async function setServerConfig(JSONdata, ws) {
@@ -234,7 +251,7 @@ async function setServerConfig(JSONdata, ws) {
     }
     connections.push(connection);
 
-    console.log('connections',connections)
+    //console.log('connections',connections)
 
     sendToRenderer('serverConfig',{
         type: JSONdata.type,
@@ -245,7 +262,12 @@ async function setServerConfig(JSONdata, ws) {
         userName
     });
 
-    if (target == 'SD') {
+    if (target == 'MaterialPlane_Device') {
+        mpClient.start(JSONdata.sensorIp);
+        
+    }
+
+    else if (target == 'SD') {
         
         //eventEmitter.emit('ws', 'connected', 'SD', false);
         //saveSetting('SDconnected', false, 'temp');
@@ -315,4 +337,8 @@ async function setServerConfig(JSONdata, ws) {
  
 }
 
-module.exports = { initializeWebsocket };
+function getConnections() {
+    return connections;
+}
+
+module.exports = { initializeWebsocket, getConnections };

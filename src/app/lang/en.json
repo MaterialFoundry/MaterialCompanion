@@ -25,7 +25,7 @@
 
     "OVERVIEW.MCADDR.LABEL": "Material Companion Address",
     "OVERVIEW.MCADDR.TOOLTIP": "Material Companion address to use in Foundry.",
-    "OVERVIEW.REMOTEMCADDR.LABEL": "Remote Material Companion Address",
+    "OVERVIEW.REMOTEMCADDR.LABEL": "Alternative Material Companion Address",
     "OVERVIEW.REMOTEMCADDR.TOOLTIP": "You can use this address instead of 'Material Companion Address'. Should only be necessary if Material Companion is not on the same machine as the Foundry client. This will only work for unsecured Foundry servers.",
     "OVERVIEW.CONNSTATUS.LABEL": "Connection Status",
     "OVERVIEW.CONNSTATUS.TOOLTIP": "The connection status of each supported module and its corresponding device (Material Plane sensor, Stream Deck, etc) is displayed, where <span class='cbChecked'>✔</span> indicates a connection and <span class='cbUnchecked'>✘</span> indicates no connection.",

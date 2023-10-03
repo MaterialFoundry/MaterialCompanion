@@ -24,7 +24,7 @@ const startLogo = {
 window.i18n = new Localization();
 
 ipcRenderer.on('asynchronous-message', async function (evt, message) {
-    //console.log('received from main: ',message); // Returns: {'SAVED': 'File Saved'}
+    console.log('received from main: ',message); // Returns: {'SAVED': 'File Saved'}
 
     if (message.type == 'refreshWindow') {
         await sensorPort.closeSerialPort();
@@ -35,15 +35,33 @@ ipcRenderer.on('asynchronous-message', async function (evt, message) {
             if (message.data.type == 'connected') materialDeck.addClient(message.data.userId, message.data.userName);
             else if (message.data.type == 'disconnected') materialDeck.removeClient(message.data.userId, message.data.userName);
         } 
-        if (message.data.source == 'MaterialDeck_Device') {
+        else if (message.data.source == 'MaterialDeck_Device') {
             if (message.data.type == 'connected') materialDeck.updateDevices(message.data.devices);
             if (message.data.type == 'disconnected') materialDeck.removeAllDevices();
-            
         } 
+        else if (message.data.source == 'MaterialPlane_Foundry') {
+            if (message.data.type == 'connected') {
+                document.getElementById("MaterialPlane_Foundry").checked = true;
+                document.getElementById("MaterialPlane_Foundry2").checked = true;
+            }
+            if (message.data.type == 'disconnected') {
+                document.getElementById("MaterialPlane_Foundry").checked = false;
+                document.getElementById("MaterialPlane_Foundry2").checked = false;
+            }
+        }
     }
     else if (message.type == 'materialDeck_deviceConnected') materialDeck.addDevice(message.data.device);
     else if (message.type == 'materialDeck_deviceDisconnected') materialDeck.removeDevice(message.data.device);
     else if (message.type == 'midiDevices') materialKeys.updateDevices(message.inputs, message.outputs);
+
+    else if (message.type == 'materialPlane_deviceConnected') {
+        document.getElementById("MaterialPlane_Device").checked = true;
+        document.getElementById("MaterialPlane_Device2").checked = true;
+    }
+    else if (message.type == 'materialPlane_deviceDisconnected') {
+        document.getElementById("MaterialPlane_Device").checked = false;
+        document.getElementById("MaterialPlane_Device2").checked = false;
+    }
 });
 
 document.addEventListener("DOMContentLoaded", async function(){

@@ -3,8 +3,22 @@ const path = require('path');
 const url = require('url');
 const packageJson = require('../package.json');
 const settings = require('electron-settings');
-const { initializeWebsocket } = require('./websocket')
+const { initializeWebsocket, getConnections } = require('./websocket')
 const { initializeMidi, getAllowedMkDevices } = require('./modules/materialKeys')
+
+let dev = false;
+
+
+var env = process.argv[2];
+switch (env) {
+    case 'dev':
+        console.log('Starting development')
+        dev = true;
+        break;
+    case 'prod':
+        dev = false;
+        break;
+}
 
 console.log(`Starting Material Companion v${packageJson.version}`);
 
@@ -79,8 +93,13 @@ const createWindow = () => {
         }
     });
 
-    //Open console by default
-    //win.webContents.openDevTools();
+    //Open console for dev
+    if (dev) {
+        win.webContents.openDevTools();
+        win.webContents.send('asynchronous-message', {
+            devMode: 'true'
+        });
+    }
 }
 
 function relaunchApp() {
