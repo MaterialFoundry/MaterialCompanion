@@ -13,7 +13,7 @@ let mpClient;
 let mpSerial;
 
 ipcMain.handle('sendWs', async(event, ...args) => {
-    console.log('sendWs',event,...args);
+    //console.log('sendWs',event,...args);
 })
 
 function sendToRenderer(type,data) {
@@ -89,7 +89,7 @@ async function initializeWebsocket(window, eventEm) {
         });
 
         ws.on('close', async function (client) {
-            console.log('close ws')
+            console.log('Closed ws')
             
             sendToRenderer('serverConfig',{
                 type: 'disconnected',
@@ -246,7 +246,7 @@ async function setServerConfig(JSONdata, ws) {
     }
 
     if (connections.find(c => c.userId == userId)) {
-        console.log('connection already exists, clearing earlier entry');
+        console.log('Connection already exists, clearing earlier entry');
         connections = connections.filter(c => c.userId != userId);
     }
     connections.push(connection);

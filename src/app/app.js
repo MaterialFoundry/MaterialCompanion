@@ -24,7 +24,7 @@ const startLogo = {
 window.i18n = new Localization();
 
 ipcRenderer.on('asynchronous-message', async function (evt, message) {
-    console.log('received from main: ',message); // Returns: {'SAVED': 'File Saved'}
+    //console.log('received from main: ',message);
 
     if (message.type == 'refreshWindow') {
         await sensorPort.closeSerialPort();

@@ -113,7 +113,7 @@ class DeviceManager {
 
     addDevice(device) {
         if (this.devices.find(d => d.id == device.id)) {
-            console.log('device already exists');
+            console.log('Device already exists');
             return;
         }
         else this.devices.push(device);

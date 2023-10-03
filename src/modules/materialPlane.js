@@ -105,8 +105,8 @@ class materialPlaneSerial {
     }
 
     async scanSerial() {
-        console.log("scanning serialports")
-        console.log(await this.serialPort.scanSerialPorts());
+        //console.log("scanning serialports")
+        //console.log(await this.serialPort.scanSerialPorts());
     }
 }
 

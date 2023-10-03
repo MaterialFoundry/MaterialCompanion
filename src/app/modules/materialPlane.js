@@ -228,7 +228,6 @@ class MaterialPlane {
         });
     }
 
-
     async installPymcuprog() {
         this.pythonInstalled = await this.checkPythonInstall();
         if (!this.pythonInstalled) {
@@ -352,19 +351,41 @@ class MaterialPlane {
             }
         });
         //console.log(updateMessage)
+
+        ls.stdout.on("data", data => {
+             console.log(`stdout: ${data}`);
+             const str = String.fromCharCode.apply(null, new Uint16Array(data));
+            if (str.includes("UPDI initialisation failed")) {
+                popup.addDetails(`Err: ${str}\n`);
+                popup.error(`Could not find dock or ${device}.`, true);
+                return;
+            }
+            if (str.includes("could not open port")) {
+                popup.addDetails(`Err: ${str}\n`);
+                popup.error(`Could not find dock.`, true);
+                return;
+            }
+            else if (str.includes ('ERROR')) {
+                popup.addDetails(`Err: ${str}\n`);
+                popup.error(`Read failed, see 'Details' for more info.`, true);
+                return;
+            }
+             
+        });
+        
         ls.stderr.on("data", data => {
             const str = String.fromCharCode.apply(null, new Uint16Array(data));
-            //console.log(`stderr: ${data}`);   
+            console.log(`stderr: ${data}`);   
             popup.addDetails(`data: ${data}\n`);
         });
     
         ls.on('error', (error) => {
-           // console.log(`error: ${error.message}`);
+            console.log(`error: ${error.message}`);
            popup.addDetails(`err: ${error}\n`);
         });
     
         ls.on("close", async code => {
-            //console.log(`child process exited with code ${code}`);
+            console.log(`child process exited with code ${code}`);
             popup.addDetails(`close: ${code}\n`);
         });
 

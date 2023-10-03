@@ -34,7 +34,7 @@ class Midi {
         let inputs = easymidi.getInputs();
         let outputs = easymidi.getOutputs();
     
-        console.log('midi',inputs,outputs);
+        //console.log('midi',inputs,outputs);
 
         win.webContents.send('asynchronous-message', {
             type: 'midiDevices',
