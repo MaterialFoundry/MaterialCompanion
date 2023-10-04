@@ -26,7 +26,7 @@ class MaterialPlane {
     pymcuprogInstalled = false;
     pythonInstalled = false;
     pipInstalled = false;
-    pythonCmd = window.navigator.platform == 'Win32' ? 'py' : 'python';
+    pythonCmd = window.navigator.platform == 'Win32' ? 'py' : window.navigator.platform == 'Linux x86_64' ? 'python3' : 'python';
 
     init(sensorPort, dockPort) {
         /* COM ports*/
@@ -94,6 +94,10 @@ class MaterialPlane {
                 document.getElementById("scanWiFi").value = "Scanning.  ";
                 let counter = 0;
                 document.scanInterval = setInterval(()=>{
+                    if (document.getElementById("scanWiFi") == undefined) {
+                        clearInterval(document.scanInterval);
+                        return;
+                    }
                     if (counter >= 20) {
                         clearInterval(document.scanInterval);
                         document.getElementById("scanWiFi").value = "Scan";

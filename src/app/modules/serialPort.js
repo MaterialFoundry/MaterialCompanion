@@ -26,8 +26,8 @@ const deviceList = [
 
 function getSerialPortName(port) {
     for (let d of deviceList) {
-        if (port.vendorId !== d.vid) continue;
-        if (port.productId !== d.pid) continue;
+        if (port.vendorId.toUpperCase() !== d.vid) continue;
+        if (port.productId.toUpperCase() !== d.pid) continue;
         if (d.name == "Dock" && !port.serialNumber.startsWith("MPD")) continue;
         return d.name;
     }
@@ -58,6 +58,7 @@ async function scanSerialPorts() {
             }
         } 
     });
+    //console.log(serialports)
     return serialports;
 }
 
@@ -131,7 +132,8 @@ class SerPort {
             let parent = this;
             this.errorTimeout = setTimeout(()=>{
                 //if (parent.open) {
-                    popup.error("Could not read data");
+                    popup.error("Could not read data", true);
+                    popup.addDetails('Timeout\n');
                     parent.closeSerialPort();
                 //}
             },timeout);
@@ -163,6 +165,13 @@ class SerPort {
             parent.open = false;
             document.getElementById("connectComPort").innerHTML = window.i18n.localize("CONNECT");
         })
+        this.port.on('error', function(err) {
+            console.log('Error',err);
+            popup.error("Error, check 'Details' for more info.", true);
+            popup.clearDetails();
+            popup.addDetails(err);
+            clearTimeout(this.errorTimeout);
+        });
     }
 
     write(msg) {
