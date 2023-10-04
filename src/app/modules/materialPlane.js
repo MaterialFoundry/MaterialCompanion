@@ -26,7 +26,7 @@ class MaterialPlane {
     pymcuprogInstalled = false;
     pythonInstalled = false;
     pipInstalled = false;
-    pythonCmd = window.navigator.platform == 'Win32' ? 'py' : window.navigator.platform == 'Linux x86_64' ? 'python3' : 'python';
+    pythonCmd = window.navigator.platform == 'Win32' ? 'py' : 'python3';
 
     init(sensorPort, dockPort) {
         /* COM ports*/
