@@ -732,6 +732,11 @@ class MaterialPlane {
             }
             
         });
+
+        ls.stderr.on("data", data => {
+            console.log(`stderr: ${data}`);   
+            popup.addDetails(`stderr: ${data}\n`);
+        });
         
         python.on('close', (code) => {
             console.log(`Esptool closed with code: ${code}, data:`,{data:dataToSend});
