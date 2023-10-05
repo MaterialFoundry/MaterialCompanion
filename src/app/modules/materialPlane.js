@@ -713,7 +713,7 @@ class MaterialPlane {
         python.stdout.on('data', function (data) {
             dataToSend = data.toString();
             const str = String.fromCharCode.apply(null, new Uint16Array(data));
-            //console.log('Pipe data from esptool',{data:str});
+            console.log('Pipe data from esptool',{data:str});
             
             popup.addDetails(str);
 
@@ -734,10 +734,11 @@ class MaterialPlane {
         });
         
         python.on('close', (code) => {
-           // console.log(`Esptool closed with code: ${code}, data:`,{data:dataToSend});
+            console.log(`Esptool closed with code: ${code}, data:`,{data:dataToSend});
             if (code != 0) {
                 popup.error(i18n.localize("MP.SENSOR_UPDATE.ERR"), true);
             }
+            popup.addDetails(`Closed: ${code}`);
             parent.deleteFile(zipPath);
             parent.deleteFile(firmwarePath);
             parent.deleteFile(bootloaderPath);
