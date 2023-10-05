@@ -745,6 +745,11 @@ class MaterialPlane {
             parent.deleteFile(partitionsPath);
             parent.deleteFile(webserverPath);
         });
+
+        python.on('error', (err) => {
+            popup.error(i18n.localize("MP.SENSOR_UPDATE.ERR"), true);
+            popup.addDetails(err);
+        })
         return;
     }
 
