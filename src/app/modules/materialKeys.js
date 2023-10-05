@@ -21,8 +21,6 @@ class MaterialKeys {
         const allowedDevices = await getDataFromMain('allowedMkDevices');
         console.log('updating midi devices',inputs, outputs, allowedDevices)
 
-        
-
         let table = document.getElementById('mkTable');
         for (let i=table.rows.length-1; i>0; i--) 
             table.deleteRow(i);
@@ -36,36 +34,49 @@ class MaterialKeys {
             const input = inputs[i];
             if (input == undefined) cell1.innerHTML = '';
             else {
-                cell1.innerHTML = this.createTableDevice(input, allowedDevices, 'input');
-                /*
-                cell1.innerHTML = input; 
-                let validDevices = allowedDevices.devices.filter(d => input.includes(d.id));
-                if (validDevices.filter(d => input.includes(d.id)).length > 0) {
-                    if (validDevices.find(d => d.id == this.input?.id)) cell1.style.color = 'green'
-                    else cell1.style.color = 'orange'
-                }  
-                */
+                cell1.innerHTML = await this.createTableDevice(input, allowedDevices, 'input');
+                cell2.innerHTML = await this.createTableDevice(input, allowedDevices, 'output');
             }
 
-
             const output = outputs[i];
-            console.log(i,input,output)
-            //cell1.innerHTML = inputs[i] == undefined ? '' : inputs[i];
-            //cell2.innerHTML = outputs[i] == undefined ? '' : outputs[i];
+        }
+        const clickableDevices = document.getElementsByName('mkDevice');
+        let parent = this;
+        for (let elmnt of clickableDevices) {
+            elmnt.addEventListener('click', async (event)=> {
+                const id = event.target.id;
+                const idSplit = id.split('-');
+                const type = idSplit[idSplit.length-1];
+                let name = '';
+                for (let i=0; i<idSplit.length-1; i++) {
+                    if (i > 0) name += '-';
+                    name += idSplit[i];
+                }
+                let blockedDevices = await getSetting('blockedMkDevices');
+                if (blockedDevices.find(d => d.name == name && d.type == type)) {
+                    blockedDevices = blockedDevices.filter(d => d.name != name || d.type != type);
+                }
+                else {
+                    blockedDevices.push({name, type});
+                }
+                setSetting('blockedMkDevices',blockedDevices)
+                setTimeout(()=>parent.updateDevices(inputs, outputs),10);
+            });
         }
     }
 
     async createTableDevice(device, allowedDevices, deviceType) {
-        let html = '';
         const blockedDevices = await getSetting('blockedMkDevices');
-        //console.log('client',client)
-        let status = 'notConnected';
-        let validDevices = allowedDevices.devices.filter(d => device.includes(d.id));
-        if (validDevices.filter(d => device.includes(d.id)).length > 0) {
-            if (validDevices.find(d => d.id == this.input?.id)) status = ''
-            else status = 'validDevice'
-        }  
-        return  `<div class="mkDevice ${status}">${device}</div>`;
+        let status = '';
+        if (blockedDevices.find(d => d.name == device && d.type == deviceType)) status = 'blocked';
+        else {
+            let validDevices = allowedDevices.devices.filter(d => device.includes(d.id));
+            if (validDevices.filter(d => device.includes(d.id)).length > 0) {
+                if (validDevices.find(d => d.id == this.input?.id)) status = 'connected'
+                else status = 'validDevice'
+            } 
+        }
+        return  `<div class="mkDevice ${status}" id="${device}-${deviceType}" name="${status != '' ? 'mkDevice' : ''}">${device}</div>`;
     }
 }
 

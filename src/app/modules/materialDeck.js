@@ -101,11 +101,12 @@ class MaterialDeck {
             return `<div class="mdDevice notConnected">${i18n.localize("MD.SD_NOT_CONNECTED.LABEL")}</div>`;
         }
         for (let device of devices) {
-            const blocked = client.materialDeck.blockedDevices.indexOf(device.id) > -1 ? 'blocked' : '';
+            const blocked = client.materialDeck.blockedDevices.indexOf(device.id) > -1 ? 'blocked' : 'connected';
             html += `<div class="mdDevice ${blocked}" name="mdDevice" id="mdDevice_${client.userId}_${device.id}">${device.name}</div>`;
             let parent = this;
             setTimeout(() => {
-                document.getElementById(`mdDevice_${client.userId}_${device.id}`).addEventListener('click', function(event) {parent.deviceClicked(event,parent)});
+                if (document.getElementById(`mdDevice_${client.userId}_${device.id}`) != null)
+                    document.getElementById(`mdDevice_${client.userId}_${device.id}`).addEventListener('click', function(event) {parent.deviceClicked(event,parent)});
             },100)
         }
         return html;

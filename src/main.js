@@ -8,7 +8,6 @@ const { initializeMidi, getAllowedMkDevices } = require('./modules/materialKeys'
 
 let dev = false;
 
-
 var env = process.argv[2];
 switch (env) {
     case 'dev':
@@ -49,8 +48,11 @@ async function setDefaultSettings(force = false) {
 
 app.whenReady().then(() => {
     createWindow();
-    initializeWebsocket(win);
-    initializeMidi(win);
+    setTimeout(()=> {
+        initializeWebsocket(win);
+        initializeMidi(win);
+    }, 1000)
+    
 })
 
 const createWindow = () => {
@@ -113,7 +115,7 @@ ipcMain.handle('restart', (event) => {
 });
 
 ipcMain.handle('setSetting', async (event, key, value) => {
-    //console.log('setSetting',key,value)
+    console.log('setSetting',key,value)
     return await settings.set(key,value);
 });
 

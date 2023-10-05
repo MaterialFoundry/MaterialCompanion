@@ -258,12 +258,12 @@ body {
   background-color: #2d3058;
   color: white;
   display: inline-block;
-  border: 2px solid green;
+  border: 2px solid rgb(59, 59, 59);
+  cursor: default;
   padding: 3px;
   margin: 2px;
   border-radius: 7.5px;
   font-size: 0.75em;
-  cursor: pointer;
 }
 
 .blocked {
@@ -277,6 +277,12 @@ body {
 
 .validDevice {
   border: 2px solid orange;
+  cursor: pointer;
+}
+
+.connected {
+  border: 2px solid green;
+  cursor: pointer;
 }
 
 select,

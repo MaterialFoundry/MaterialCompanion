@@ -121,7 +121,7 @@
     "MK.LPCONNECTED.LABEL": "Launchpad Connected",
     "MK.LPCONNECTED.TOOLTIP": "Displays whether a Launchpad is connected to Material Companion.",
     "MK.MIDIDEVICES.LABEL": "MIDI Devices",
-    "MK.MIDIDEVICES.TOOLTIP": "List of available MIDI inputs and outputs. <span style='color:orange'>Orange</span> in/outputs are compatible with Material Keys. <span style='color:green'>Green</span> in/outputs are connected to Material Companion.",
+    "MK.MIDIDEVICES.TOOLTIP": "List of available MIDI inputs and outputs. <span style='color:orange'>Orange</span> in/outputs are compatible with Material Keys. <span style='color:green'>Green</span> in/outputs are currently connected to Material Companion. <span style='color:red'>Red</span> in/outputs are blocked and will not try to connect. Click an in/output to block or unblock it.",
     "MK.SCAN_MIDI.LABEL": "Scan for MIDI Devices",
     "MK.SCAN_MIDI.TOOLTIP": "Scan for MIDI devices connected to the computer.",
 
@@ -141,7 +141,7 @@
     "MD.USERNAME.LABEL": "Username",
     "MD.USERNAME.TOOLTIP": "Foundry username of the client.",
     "MD.CONNECT_TO.LABEL": "Connect To",
-    "MD.CONNECT_TO.TOOLTIP": "Displays all Stream Decks and whether they connect to the client (<span style='color:green'>green border</span>) or not (<span style='color:red'>red border</span>). Click on the devices to enable or disable the connection.",
+    "MD.CONNECT_TO.TOOLTIP": "Displays all Stream Decks and whether they connect to the client (<span style='color:green'>green</span>) or not (<span style='color:red'>red</span>). Click on the devices to enable or disable the connection.",
 
     "SETTINGS.LANGUAGE.LABEL": "Language",
     "SETTINGS.LANGUAGE.TOOLTIP": "Sets the language of Material Server.",

@@ -25,6 +25,9 @@ window.i18n = new Localization();
 
 ipcRenderer.on('asynchronous-message', async function (evt, message) {
     //console.log('received from main: ',message);
+    if (message.type == 'connections') {
+        console.log(JSON.parse(message.data.connections))
+    }
 
     if (message.type == 'refreshWindow') {
         await sensorPort.closeSerialPort();
@@ -32,14 +35,17 @@ ipcRenderer.on('asynchronous-message', async function (evt, message) {
     }
     else if (message.type == 'serverConfig') {
         if (message.data.source == 'MaterialDeck_Foundry') {
+            console.log('Material Deck',message.data.type)
             if (message.data.type == 'connected') materialDeck.addClient(message.data.userId, message.data.userName);
             else if (message.data.type == 'disconnected') materialDeck.removeClient(message.data.userId, message.data.userName);
         } 
         else if (message.data.source == 'MaterialDeck_Device') {
+            console.log('Stream Deck',message.data.type)
             if (message.data.type == 'connected') materialDeck.updateDevices(message.data.devices);
             if (message.data.type == 'disconnected') materialDeck.removeAllDevices();
         } 
         else if (message.data.source == 'MaterialPlane_Foundry') {
+            console.log('Material Plane Module',message.data.type)
             if (message.data.type == 'connected') {
                 document.getElementById("MaterialPlane_Foundry").checked = true;
                 document.getElementById("MaterialPlane_Foundry2").checked = true;
@@ -49,6 +55,14 @@ ipcRenderer.on('asynchronous-message', async function (evt, message) {
                 document.getElementById("MaterialPlane_Foundry2").checked = false;
             }
         }
+        else if (message.data.source == 'MaterialKeys_Foundry') {
+            console.log('Material Keys',message.data.type)
+            materialKeys.setFoundryConnected(message.data.type == 'connected');
+        } 
+        else if (message.data.source == 'MaterialKeys_Device') {
+            console.log('Stream Keys',message.data.type)
+            materialKeys.setDeviceConnected(message.data.type == 'connected');
+        } 
     }
     else if (message.type == 'materialDeck_deviceConnected') materialDeck.addDevice(message.data.device);
     else if (message.type == 'materialDeck_deviceDisconnected') materialDeck.removeDevice(message.data.device);

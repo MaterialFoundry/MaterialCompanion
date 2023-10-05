@@ -7,10 +7,12 @@ const { materialPlaneWsClient, materialPlaneSerial } = require('./modules/materi
 
 let win;
 let connections = [];
-let wss;
+//let wss;
 let mdClients = [];
-let mpClient;
+//let mpClient;
 let mpSerial;
+//let app;
+let pluginVersion;
 
 ipcMain.handle('sendWs', async(event, ...args) => {
     //console.log('sendWs',event,...args);
@@ -23,9 +25,9 @@ function sendToRenderer(type,data) {
 
 async function initializeWebsocket(window, eventEm) {
     
-    if (wss != undefined) {
+    if (app.wss != undefined) {
         console.log('websocket already open, terminating all connections');
-        await wss.clients.forEach((socket) => {
+        await app.wss.clients.forEach((socket) => {
             // Soft close
             socket.close();
           
@@ -36,10 +38,10 @@ async function initializeWebsocket(window, eventEm) {
               }
             });
           });
-        await wss.close();
-        wss = undefined;
-        mpClient.close();
-        mpClient = undefined;
+        await app.wss.close();
+        app.wss = undefined;
+        app.mpClient.close();
+        app.mpClient = undefined;
     }
     
     win = window
@@ -49,16 +51,16 @@ async function initializeWebsocket(window, eventEm) {
     port = await settings.get('port');
     console.log(`Starting websocket on port ${port}`)
     sendToRenderer('notification',`Starting websocket on port ${port}`)
-    wss = new WebSocket.WebSocketServer({ port });
+    app.wss = new WebSocket.WebSocketServer({ port });
     setTimeout(()=> {
-        mpClient = new materialPlaneWsClient(wss, window);
+        app.mpClient = new materialPlaneWsClient(app.wss, window);
         mpSerial = new materialPlaneSerial(window);
     },100);
     
     /*
     * Do when a new websocket connection is made
     */
-    wss.on('connection', function (ws, request, client) {
+    app.wss.on('connection', function (ws, request, client) {
         let source;
         let connection;
         let userId;
@@ -73,7 +75,7 @@ async function initializeWebsocket(window, eventEm) {
         ws.on('message', async function incoming(data) {
             let JSONdata = JSON.parse(data);
             sendToRenderer('wsReceive',JSONdata);
-            
+            //console.log('rec',JSONdata)
             if (JSONdata.target == "MaterialCompanion") {
                 source = JSONdata.source;
                 userId = JSONdata.userId;
@@ -81,8 +83,11 @@ async function initializeWebsocket(window, eventEm) {
                 target = JSONdata.target;
                 connection = await setServerConfig(JSONdata, ws);
             }
+            else if (JSONdata.target == "MaterialPlane_Device") {
+                app.mpClient.broadcast(JSONdata.data)
+            }
             else {
-                wss.broadcast(JSONdata, JSONdata.target, source);
+                app.wss.broadcast(JSONdata, JSONdata.target, source);
             }
 
             analyzeWebsocketMessage(JSONdata);
@@ -130,7 +135,7 @@ async function initializeWebsocket(window, eventEm) {
                             type: 'disconnected',
                             data: 'SD'
                         }
-                        wss.broadcast(data);
+                        app.wss.broadcast(data);
                     }
                 }
             }
@@ -154,7 +159,7 @@ async function initializeWebsocket(window, eventEm) {
                     type: 'disconnected',
                     id: passthroughId
                 }
-                wss.broadcast(data);
+                app.wss.broadcast(data);
             }
             */
             clearInterval(id);
@@ -164,16 +169,18 @@ async function initializeWebsocket(window, eventEm) {
     /*
     * Broadcast message over websocket to all connected clients
     */
-    wss.broadcast = async function broadcast(data, target, source) {
-        //sendToRenderer('wsBroadcast',{data,target,source});
-        const msg = JSON.stringify(data);
+    app.wss.broadcast = async function broadcast(data, target, source) {
+        sendToRenderer('wsBroadcast',{data,target,source});
+        let msg = JSON.stringify(data);
         let conn = connections.filter(c => c.source == target);
         let clientData = [];
+        //console.log('send',target,source, conn.length)
         if (target == 'MaterialDeck_Foundry' || target == 'MaterialDeck_Device') clientData = await settings.get('clientData');
 
         for (let connection of conn) {
+            //console.log('connection',connection.source, source, connection.target, target)
             if (connection.source != target && connection.target != source) continue;
-            //console.log('connection',connection)
+            //console.log('connection',connection.source, connection.target, data)
             if (target == 'MaterialDeck_Foundry' && data.device != undefined) {
                 const user = clientData.find(c => c.userId == connection.userId);
                 if (user.materialDeck.blockedDevices.indexOf(data.device) != -1) continue;
@@ -182,10 +189,15 @@ async function initializeWebsocket(window, eventEm) {
                 const user = clientData.find(c => c.userId == data.userId);
                 
                 if (user.materialDeck.blockedDevices.indexOf(data.device) != -1) continue;
+
+                
                 //console.log('user',data.device,user,user.materialDeck.blockedDevices.indexOf(data.device))
             }
+            sendToRenderer('wsBroadcast',{msg});
             connection.ws.send(msg)
+            
         }
+        //console.log('message not sent',target,source)
         
         //console.log('conn',conn)
         return;
@@ -245,7 +257,7 @@ async function setServerConfig(JSONdata, ws) {
         devices,
     }
 
-    if (connections.find(c => c.userId == userId)) {
+    if (connections.find(c => c.userId == userId && c.target == target && c.source == source)) {
         console.log('Connection already exists, clearing earlier entry');
         connections = connections.filter(c => c.userId != userId);
     }
@@ -262,41 +274,46 @@ async function setServerConfig(JSONdata, ws) {
         userName
     });
 
+   // sendToRenderer('connections',{
+    //    connections: JSON.stringify(connections)
+    //});
+
+
     if (target == 'MaterialPlane_Device') {
-        mpClient.start(JSONdata.sensorIp);
+        app.mpClient.start(JSONdata.sensorIp, app.wss);
         
     }
-
     else if (target == 'SD') {
         
         //eventEmitter.emit('ws', 'connected', 'SD', false);
         //saveSetting('SDconnected', false, 'temp');
     }
+    else if (source == "MaterialDeck_Foundry") {
+        console.log('Foundry VTT - MD Connected');
+        const data = {
+            target: 'MaterialDeck_Foundry',
+            source: 'MaterialCompanion',
+            type: 'connected',
+            materialCompanionVersion: version,
+            pluginVersion,
+        }
+        app.wss.broadcast(data, data.target, data.source);
+    }
+    else if (source == "MaterialDeck_Device") {
+        console.log('Stream Deck Connected');
+        pluginVersion = JSONdata.version;
+        const data = {
+            target: 'MaterialDeck_Foundry',
+            source: 'MaterialCompanion',
+            type: 'connected',
+            materialCompanionVersion: version,
+            pluginVersion,
+        }
+        app.wss.broadcast(data, data.target, data.source);
+    }
     return connection;
 
-    if (target == "MD"){
-        connection = {
-            ws,
-            conId: connectionId,
-            target
-        };
-        connections.push(connection);
-        connectionId++;
-        MDConnected = true;
-
-        console.log('Foundry VTT - MD connected');
-
-        if (SDConnected){
-            const data = {
-                target: 'MD',
-                type: 'connected',
-                data: 'SD',
-                MSversion: version,
-                SDversion: SDversion,
-            }
-            wss.broadcast(data);
-        }
-    }
+    /*
     else if (target == "SD"){
         SDversion = JSONdata.version;
         if (JSONdata.type == "disconnected"){
@@ -308,7 +325,7 @@ async function setServerConfig(JSONdata, ws) {
                     type: 'disconnected',
                     data: 'SD'
                 }
-                wss.broadcast(data);
+                app.wss.broadcast(data);
             }
         }
         else {
@@ -330,10 +347,11 @@ async function setServerConfig(JSONdata, ws) {
                     MSversion: version,
                     SDversion: SDversion,
                 }
-                wss.broadcast(data);
+                app.wss.broadcast(data);
             }
         }
     }
+    */
  
 }
 

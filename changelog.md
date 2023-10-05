@@ -1,4 +1,15 @@
 # Changelog Material Companion
+### v1.0.2 - 
+Fixes:
+<ul>
+<li>Fixed communication from Material Plane module to sensor</li>
+</ul>
+
+Additions:
+<ul>
+<li>Added support for Material Deck</li>
+</ul>
+
 ### v1.0.1 - 04-10-2023
 Additions:
 <ul>

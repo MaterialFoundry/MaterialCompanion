@@ -21,15 +21,16 @@ function sendToRenderer(type,data) {
 
 class materialPlaneWsClient {
     sensorIp;
+    server;
     
     constructor(wss,window) {
-        this.server = wss;
         win = window;
         obj = this;
     }
 
-    async start(ip) {
+    async start(ip, wss) {
         this.sensorIp = ip;
+        this.server = wss;
 
         if (wsOpen) {
             console.log('Sensor WS already open, closing now'); 
@@ -44,7 +45,7 @@ class materialPlaneWsClient {
         let parent = this;
 
         ws.onmessage = function(msg) {
-            //console.log('msg')
+            //console.log('msg',msg.data)
             //console.log(this.server);
             clearInterval(inverval);
             inverval = setInterval(parent.resetConnection, 2500);
@@ -55,7 +56,7 @@ class materialPlaneWsClient {
             console.log("Material Plane Sensor: Websocket connected");
             wsOpen = true;
             sendToRenderer('materialPlane_deviceConnected');
-            parent.server.broadcast({status:'sensorConnected'},'MaterialPlane_Foundry','MaterialPlane_Device');
+            app.wss.broadcast({status:'sensorConnected'},'MaterialPlane_Foundry','MaterialPlane_Device');
             clearInterval(inverval);
             inverval = setInterval(parent.resetConnection, 2500);
         }
@@ -72,6 +73,13 @@ class materialPlaneWsClient {
         }
 
         inverval = setInterval(this.resetConnection, 10000);
+    }
+
+    broadcast(data) {
+        if (wsOpen) {
+            //console.log('toSensor',data)
+            ws.send(JSON.stringify(data))
+        }
     }
 
     async close() {
