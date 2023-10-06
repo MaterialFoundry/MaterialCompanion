@@ -733,7 +733,7 @@ class MaterialPlane {
             
         });
 
-        ls.stderr.on("data", data => {
+        python.stderr.on("data", data => {
             console.log(`stderr: ${data}`);   
             popup.addDetails(`stderr: ${data}\n`);
         });
