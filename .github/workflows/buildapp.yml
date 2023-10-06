@@ -70,8 +70,8 @@ jobs:
     - run: mv ./out/Material\ Companion-darwin-x64/Material\ Companion.app ./MaterialCompanion-macos-x64.app
     - run: zip -r ./MaterialCompanion-macos-arm64.zip ./MaterialCompanion-macos-arm64.app
     - run: zip -r ./MaterialCompanion-macos-x64.zip ./MaterialCompanion-macos-x64.app
-    - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
-    - run: mv ./out/make/Material\ Companion-${{ steps.get_version.outputs.version-without-v }}-x64.dmg ./MaterialCompanion-macos-x64.dmg
+    - run: mv ./out/make/Material\ Companion-${{ github.event.release.tag_name }}-arm64.dmg ./MaterialCompanion-macos-arm64.dmg
+    - run: mv ./out/make/Material\ Companion-${{ github.event.release.tag_name }}-x64.dmg ./MaterialCompanion-macos-x64.dmg
     - run: ls -hl
 
     - run: ls -hl
