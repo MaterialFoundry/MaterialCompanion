@@ -194,11 +194,10 @@ class SerPort {
         let parent = this;
         try {
             data = JSON.parse(msg);
-            //console.warn('data',data);
         }
         catch (error) {
             validJson = false;
-            //console.log('could not parse',msg.length,error)
+            console.log('could not parse',error)
         }
 
         if (validJson) {

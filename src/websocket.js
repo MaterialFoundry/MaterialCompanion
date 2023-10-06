@@ -73,7 +73,12 @@ async function initializeWebsocket(window, eventEm) {
         }, 1000);
 
         ws.on('message', async function incoming(data) {
-            let JSONdata = JSON.parse(data);
+            let JSONdata;
+            try {
+                JSONdata = JSON.parse(data);
+            } catch(err) {
+                console.log('could not parse JSON',err)
+            }
             sendToRenderer('wsReceive',JSONdata);
             //console.log('rec',JSONdata)
             if (JSONdata.target == "MaterialCompanion") {

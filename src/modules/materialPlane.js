@@ -49,7 +49,13 @@ class materialPlaneWsClient {
             //console.log(this.server);
             clearInterval(inverval);
             inverval = setInterval(parent.resetConnection, 2500);
-            app.wss.broadcast(JSON.parse(msg.data),'MaterialPlane_Foundry','MaterialPlane_Device');
+            let data;
+            try {
+                data = JSON.parse(msg.data)
+            } catch(err) {
+                console.log(err);
+            }
+            app.wss.broadcast(data,'MaterialPlane_Foundry','MaterialPlane_Device');
         }
 
         ws.onopen = function() {
