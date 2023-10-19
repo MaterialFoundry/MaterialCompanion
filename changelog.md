@@ -1,5 +1,5 @@
 # Changelog Material Companion
-### v1.0.2 - 
+### v1.0.2 - 19-10-2023
 Fixes:
 <ul>
 <li>Fixed communication from Material Plane module to sensor</li>
