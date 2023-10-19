@@ -3,11 +3,14 @@
 Fixes:
 <ul>
 <li>Fixed communication from Material Plane module to sensor</li>
+<li>Python install is now checked when trying to update the sensor</li>
 </ul>
 
 Additions:
 <ul>
 <li>Added support for Material Deck</li>
+<li>Added a 'Connection' tab for Material Plane through which the connection to the sensor can be configured</li>
+<li>Added more debug info</li>
 </ul>
 
 ### v1.0.1 - 04-10-2023

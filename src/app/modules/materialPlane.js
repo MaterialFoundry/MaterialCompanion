@@ -2,7 +2,7 @@ const path = require('path');
 const { spawn } = require("child_process");
 const fs = require('fs');
 const fsPromises = require('fs').promises;
-const {openPopup, closePopup } = require("../misc.js")
+const { getSetting, setSetting, setData } = require("../misc.js")
 const decompress = require("decompress");
 
 const https = require('https'); // or 'https' for https:// URLs
@@ -14,12 +14,18 @@ const baseUrl = "https://api.github.com/repos/MaterialFoundry/MaterialPlane_Base
 let popup;
 let baseEepromData = [];
 let penEepromData = [];
+let sensorConnectionMode;
+let sensorIp;
+
+function startGame(game) {
+    setData('startGame',game);
+}
 
 class MaterialPlane {
     constructor(pUp) {
         popup = pUp;
     }
-    
+
     sensorReleases = [];
     baseReleases = [];
     penReleases = [];
@@ -28,7 +34,9 @@ class MaterialPlane {
     pipInstalled = false;
     pythonCmd = window.navigator.platform == 'Win32' ? 'py' : 'python3';
 
-    init(sensorPort, dockPort) {
+    async init(sensorPort, dockPort) {
+        window.startGame = function(game) {setData('startGame',game)};
+
         /* COM ports*/
         document.getElementById("refreshComPort").addEventListener('click', () => {sensorPort.scanSerialPorts();})
         document.getElementById("refreshSensorComPort").addEventListener('click', () => {sensorPort.scanSerialPorts();})
@@ -162,6 +170,26 @@ class MaterialPlane {
 
         sensorPort.scanSerialPorts();
         dockPort.scanSerialPorts();
+
+        document.getElementById("mpSensorConnectMode").addEventListener('change', (evt) => {
+            sensorConnectionMode = evt.target.value;
+            setSetting('sensorConnectionMode', sensorConnectionMode);
+        });
+
+        document.getElementById("mpSensorIpAddress").addEventListener('change', (evt) => {
+            sensorIp = evt.target.value;
+            setSetting('mpSensorIp', sensorIp);
+        });
+
+        document.getElementById("mpSensorConnect").addEventListener('click', () => {
+            setData('connectMpSensor',null);
+        })
+
+        sensorConnectionMode = await getSetting('sensorConnectionMode');
+        document.getElementById("mpSensorConnectMode").value = sensorConnectionMode;
+        sensorIp = await getSetting('mpSensorIp');
+        document.getElementById("mpSensorIpAddress").value = sensorIp;
+        document.getElementById("mpSensorIpAddress").style.color = 'white';
     }
 
     async checkPythonInstall() {
@@ -179,12 +207,12 @@ class MaterialPlane {
             });
             checkInstall.on('close', (code) => {
                 console.log(`Python closed with code: ${code}, data:`,{data:rec});
-                if (code != 0 || !rec[0].includes('Python 3')) {
+                if (code != 0) {
                     const popupContent = `
                         <h2>Python Required</h2>
-                        To configure or update the base, pen or sensor you need to install <a class="hyperlink" href="https://www.python.org/" target="_blank">Python</a>.<br>
+                        To configure or update the base, pen or sensor you need to install <a class="hyperlink" href="https://www.python.org/" target="_blank">Python 3.10 or 3.11</a>.<br>
                         <br>
-                        Please try again after installing.
+                        Please try again after installing Python.
                     `
                     popup.open(popupContent, false, false);
                     console.log("Python not installed")
@@ -212,21 +240,24 @@ class MaterialPlane {
 
     async runCommand(cmd, args) {
         return new Promise((resolve) => {
+            let argsStr = `${cmd}`;
+            for (let arg of args) argsStr += ` ${arg}`
+            popup.addDetails(`Checking ${argsStr}\n`);
             const checkInstall = spawn(cmd, args);
             let d = [];
             checkInstall.on('close', (code) => {
                 d.push(`Close: ${code}`)
-                popup.addDetails(`Close: ${code}\n`);
-                resolve({success:code == 0, data:d});
+                popup.addDetails(`${argsStr} => close: ${code}\n\n`);
+                resolve({success:code == 0, data:d, close:code});
             });
             checkInstall.on('error', (err) => {
                 d.push(`err: ${err.toString()}`);
-                popup.addDetails(`err: ${err.toString()}\n`);
+                popup.addDetails(`${argsStr} => err: ${err.toString()}\n`);
                 resolve({success:false, data:d});
             });
             checkInstall.stdout.on('data', function (data) {
                 const str = String.fromCharCode.apply(null, new Uint16Array(data));
-                popup.addDetails(`stdout: ${str}\n`);
+                popup.addDetails(`${argsStr} => stdout: ${str}`);
                 d.push(`stdout: ${str}`);
             });
         });
@@ -253,7 +284,7 @@ class MaterialPlane {
         return new Promise((resolve) => {
             const popupContent = `
                 <h2>Dependencies Required</h2>
-                To configure or update the base or pen you need to install <a class="hyperlink" href="https://pypi.org/project/pip/" target="_blank">pip</a> and <a class="hyperlink" href="https://github.com/microchip-pic-avr-tools/pymcuprog" target="_blank">pymcuprog</a>.<br>
+                To configure or update the base or pen you need to install ${!this.pipInstalled ? '<a class="hyperlink" href="https://pypi.org/project/pip/" target="_blank">pip</a>' : ''} ${!this.pipInstalled && !this.pymcuprogInstalled ? 'and' : ''} ${!this.pymcuprogInstalled ? '<a class="hyperlink" href="https://github.com/microchip-pic-avr-tools/pymcuprog" target="_blank">pymcuprog</a>' : ''}.<br>
                 <br>
                 Press 'Ok' to install or 'Cancel' to cancel.<br>
                 
@@ -262,7 +293,7 @@ class MaterialPlane {
                     <button class="popupButton" id="dontInstallPymcuprog">Cancel</button>
                 </div>
             `
-            popup.open(popupContent, false, false);
+            popup.open(popupContent, false, true);
 
             document.getElementById("dontInstallPymcuprog").addEventListener('click', ()=> {
                 popup.close();
@@ -278,15 +309,35 @@ class MaterialPlane {
                 popup.open(popupContent, false, true);
                 popup.clearDetails();
 
+                let pipInstall = {success: true}
+                let pymcuprogInstall = {success: true}
+
                 if (!parent.pipInstalled) {
                     popup.addDetails(`Installing pip.\n\n`);
-                    const pipInstall = await parent.runCommand(this.pythonCmd,['-m', 'ensurepip', '--default-pip'])
+                    pipInstall = await parent.runCommand(this.pythonCmd,['-m', 'ensurepip', '--default-pip'])
                     for (let m of pipInstall.data) popup.addDetails(`${m}\n`);
                 }
                 if (!parent.pymcuprogInstalled) {
                     popup.addDetails(`Installing pymcuprog.\n\n`);
-                    const pipInstall = await parent.runCommand(this.pythonCmd,['-m', 'pip', 'install', 'pymcuprog'])
-                    for (let m of pipInstall.data) popup.addDetails(`${m}\n`);
+                    pymcuprogInstall = await parent.runCommand(this.pythonCmd,['-m', 'pip', 'install', 'pymcuprog'])
+                    for (let m of pymcuprogInstall.data) popup.addDetails(`${m}\n`);
+                    if (!pymcuprogInstall.success) {
+                        popup.error("Pymcuprog install failed, see 'Details' for more info.",true);
+                    }
+                }
+                if (!pipInstall.success && !pymcuprogInstall.success) {
+                    const hidapiErr = pymcuprogInstall.data.find(d => d.includes('Failed to build hidapi')) != undefined
+                    popup.error(`Pip and pymcuprog install failed${hidapiErr ? ", you might have an incompatible version of Python, try uninstalling your current Python install and installing Python 3.10 or 3.11" : ""}.\nSee 'Details' for more info.`,true);
+                }
+                else if (!pipInstall.success) {
+                    popup.error("Pip install failed, see 'Details' for more info.",true);
+                }
+                else if (!pymcuprogInstall.success) {
+                    const hidapiErr = pymcuprogInstall.data.find(d => d.includes('Failed to build hidapi')) != undefined
+                    popup.error(`Pymcuprog install failed${hidapiErr ? ", you might have an incompatible version of Python, try uninstalling your current Python install and installing Python 3.10 or 3.11" : ""}.\nSee 'Details' for more info.`,true);
+                }
+                else {
+                    popup.content("Installation successful");
                 }
             });
         });
@@ -596,6 +647,8 @@ class MaterialPlane {
     }
 
     async updateSensor(port) {
+        if (await this.checkPythonInstall() == false) return;
+        
         console.log(`Update sensor on port: ${port.path}`);
 
         let parent = this;

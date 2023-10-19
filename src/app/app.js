@@ -4,7 +4,7 @@ const { MaterialDeck } = require('./modules/materialDeck.js');
 const { MaterialKeys } = require('./modules/materialKeys.js');
 const { MaterialPlane } = require('./modules/materialPlane.js');
 const { SerPort } = require("./modules/serialPort.js");
-const { PopUp } = require("./misc.js")
+const { PopUp, getDataFromMain } = require("./misc.js")
 
 let popup = new PopUp();
 
@@ -26,26 +26,30 @@ window.i18n = new Localization();
 ipcRenderer.on('asynchronous-message', async function (evt, message) {
     //console.log('received from main: ',message);
     if (message.type == 'connections') {
-        console.log(JSON.parse(message.data.connections))
+       // console.log(JSON.parse(message.data.connections))
     }
-
-    if (message.type == 'refreshWindow') {
+    else if (message.type == 'wsBroadcast') {
+        if (message.data.source == 'MaterialPlane_Device') {
+          //  console.log('sensor rec:',message.data.data)
+        }
+    }
+    else if (message.type == 'refreshWindow') {
         await sensorPort.closeSerialPort();
         await dockPort.closeSerialPort();
     }
     else if (message.type == 'serverConfig') {
         if (message.data.source == 'MaterialDeck_Foundry') {
-            console.log('Material Deck',message.data.type)
+            //console.log('Material Deck',message.data.type)
             if (message.data.type == 'connected') materialDeck.addClient(message.data.userId, message.data.userName);
             else if (message.data.type == 'disconnected') materialDeck.removeClient(message.data.userId, message.data.userName);
         } 
         else if (message.data.source == 'MaterialDeck_Device') {
-            console.log('Stream Deck',message.data.type)
+            //console.log('Stream Deck',message.data.type)
             if (message.data.type == 'connected') materialDeck.updateDevices(message.data.devices);
             if (message.data.type == 'disconnected') materialDeck.removeAllDevices();
         } 
         else if (message.data.source == 'MaterialPlane_Foundry') {
-            console.log('Material Plane Module',message.data.type)
+            //console.log('Material Plane Module',message.data.type)
             if (message.data.type == 'connected') {
                 document.getElementById("MaterialPlane_Foundry").checked = true;
                 document.getElementById("MaterialPlane_Foundry2").checked = true;
@@ -56,11 +60,11 @@ ipcRenderer.on('asynchronous-message', async function (evt, message) {
             }
         }
         else if (message.data.source == 'MaterialKeys_Foundry') {
-            console.log('Material Keys',message.data.type)
+           // console.log('Material Keys',message.data.type)
             materialKeys.setFoundryConnected(message.data.type == 'connected');
         } 
         else if (message.data.source == 'MaterialKeys_Device') {
-            console.log('Stream Keys',message.data.type)
+           // console.log('Stream Keys',message.data.type)
             materialKeys.setDeviceConnected(message.data.type == 'connected');
         } 
     }
@@ -71,10 +75,12 @@ ipcRenderer.on('asynchronous-message', async function (evt, message) {
     else if (message.type == 'materialPlane_deviceConnected') {
         document.getElementById("MaterialPlane_Device").checked = true;
         document.getElementById("MaterialPlane_Device2").checked = true;
+        document.getElementById("mpSensorConnect").innerHTML = i18n.localize("DISCONNECT");
     }
     else if (message.type == 'materialPlane_deviceDisconnected') {
         document.getElementById("MaterialPlane_Device").checked = false;
         document.getElementById("MaterialPlane_Device2").checked = false;
+        document.getElementById("mpSensorConnect").innerHTML = i18n.localize("CONNECT");
     }
 });
 
@@ -106,6 +112,8 @@ document.addEventListener("DOMContentLoaded", async function(){
     setTimeout(async () => {
         //Perform localization
         i18n.performLocalization();
+        
+        document.getElementById('footerVersion').innerHTML = 'v' + await getDataFromMain('appVersion');
 
         const wsPort = await ipcRenderer.invoke('getSetting','port');
         document.getElementById('port').value = wsPort;

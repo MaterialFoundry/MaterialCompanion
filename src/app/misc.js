@@ -17,6 +17,10 @@ async function getDataFromMain(id) {
     return value;
 }
 
+function setData(key, value) {
+    ipcRenderer.invoke('setData', key, value);
+}
+
 class PopUp {
     popupOpen = false;
     details = "";
@@ -190,4 +194,4 @@ class ClientManager {
 
 let clientManager = new ClientManager();
 
-module.exports = { getSetting, setSetting, getDataFromMain, DeviceManager, clientManager, PopUp, openPopup, closePopup }
+module.exports = { getSetting, setSetting, getDataFromMain, setData, DeviceManager, clientManager, PopUp, openPopup, closePopup }

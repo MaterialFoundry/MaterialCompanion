@@ -4,7 +4,7 @@ const { app, ipcMain } = require('electron');
 const { SerPort } = require("../app/modules/serialPort.js");
 
 let win;
-let inverval;
+let interval;
 let ws;
 let wsOpen = false;
 let obj;
@@ -22,7 +22,7 @@ function sendToRenderer(type,data) {
 class materialPlaneWsClient {
     sensorIp;
     server;
-    
+
     constructor(wss,window) {
         win = window;
         obj = this;
@@ -41,17 +41,20 @@ class materialPlaneWsClient {
 
         ws = new WebSocket('ws://'+ip);
         
-        clearInterval(inverval);
+        clearInterval(interval);
         let parent = this;
 
         ws.onmessage = function(msg) {
             //console.log('msg',msg.data)
             //console.log(this.server);
-            clearInterval(inverval);
-            inverval = setInterval(parent.resetConnection, 2500);
+            clearInterval(interval);
+            interval = setInterval(parent.resetConnection, 2500);
             let data;
             try {
-                data = JSON.parse(msg.data)
+                data = JSON.parse(msg.data);
+                if (app.gameWindow != undefined) {
+                    app.gameWindow.webContents.send('asynchronous-message', {type:'wsData',data});
+                }
             } catch(err) {
                 console.log(err);
             }
@@ -63,8 +66,8 @@ class materialPlaneWsClient {
             wsOpen = true;
             sendToRenderer('materialPlane_deviceConnected');
             app.wss.broadcast({status:'sensorConnected'},'MaterialPlane_Foundry','MaterialPlane_Device');
-            clearInterval(inverval);
-            inverval = setInterval(parent.resetConnection, 2500);
+            clearInterval(interval);
+            interval = setInterval(parent.resetConnection, 2500);
         }
 
         ws.onclose = function() {
@@ -78,7 +81,7 @@ class materialPlaneWsClient {
             //console.log('err',err)
         }
 
-        inverval = setInterval(this.resetConnection, 10000);
+        interval = setInterval(this.resetConnection, 10000);
     }
 
     broadcast(data) {
@@ -89,6 +92,8 @@ class materialPlaneWsClient {
     }
 
     async close() {
+        console.log("Closing sensor connection");
+        clearInterval(interval);
         return ws.close();
     }
 
@@ -106,6 +111,10 @@ class materialPlaneWsClient {
             obj.start(obj.sensorIp);
         }
         
+    }
+
+    connected() {
+        return wsOpen;
     }
 }
 

@@ -1,7 +1,7 @@
 <!-- Tab links -->
 <div class="mpTab">
-    <!-- <button class="mpTabLinks active" onclick="openMpTab(event, 'materialPlaneConnectionTab')">{{localize "CONNECTION"}}</button> -->
-    <button class="mpTabLinks active" onclick="openMpTab(event, 'materialPlaneSensorTab')">{{localize "MP.SENSOR"}}</button>
+    <button class="mpTabLinks active" onclick="openMpTab(event, 'materialPlaneConnectionTab')">{{localize "CONNECTION"}}</button>
+    <button class="mpTabLinks" onclick="openMpTab(event, 'materialPlaneSensorTab')">{{localize "MP.SENSOR"}}</button>
     <button class="mpTabLinks" id="baseTabLink" onclick="openMpTab(event, 'materialPlaneBaseTab')">{{localize "MP.BASE"}}</button>
     <button class="mpTabLinks" id="penTabLink" onclick="openMpTab(event, 'materialPlanePenTab')">{{localize "MP.Pen"}}</button>
 </div>
@@ -9,7 +9,7 @@
 <!------------------------------------------------------------------------------------------------->
 <!--                                      Connection                                             -->
 <!------------------------------------------------------------------------------------------------->
-<div id="materialPlaneConnectionTab" class="mpTabContent">
+<div id="materialPlaneConnectionTab" class="mpTabContent" style="display:block">
     <div class="form-elements">
         <label class="tooltip">{{localize "MP.MODULE_CONNECTED.LABEL"}}
             <span class="tooltiptext">{{localize "MP.MODULE_CONNECTED.TOOLTIP"}}</span>
@@ -28,7 +28,33 @@
         </div>
     </div>
 
+    <hr>
+
     <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_CONNECTION_EVENT.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_CONNECTION_EVENT.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val">
+            <select id="mpSensorConnectMode">
+                <option value="module">{{localize "MP.SENSOR_CONNECTION_EVENT.MODULE"}}</option>
+                <option value="start">{{localize "MP.SENSOR_CONNECTION_EVENT.ONSTART"}}</option>
+                <option value="manual">{{localize "MP.SENSOR_CONNECTION_EVENT.MANUAL"}}</option>
+            </select>
+            
+        </div>
+    </div>
+
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_CONNECTION_IP.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_CONNECTION_IP.HINT"}}</span>
+        </label>
+        <div class="form-val">
+            <input type="text" id="mpSensorIpAddress" value="materialsensor.local:3000"></input>
+            <button type="button" id="mpSensorConnect">{{localize "CONNECT"}}</button>
+        </div>
+    </div>
+
+    <div class="form-elements" style="display:none">
         <label class="tooltip">{{localize "MP.CONNECT_USB.LABEL"}}
             <span class="tooltiptext">{{localize "MP.CONNECT_USB.TOOLTIP"}}</span>
         </label>
@@ -37,7 +63,7 @@
         </div>
     </div>
 
-    <div class="form-elements">
+    <div class="form-elements" style="display:none">
         <label class="tooltip">{{localize "MP.SENSOR_USB.LABEL"}}
             <span class="tooltiptext">{{localize "MP.SENSOR_USB.TOOLTIP"}}</span>
         </label>
@@ -47,13 +73,14 @@
             <button type="button" id="connectComPort">{{localize "CONNECT"}}</button>
         </div>
     </div>
+    
 </div>
 
 <!------------------------------------------------------------------------------------------------->
 <!--                                          Sensor                                             -->
 <!------------------------------------------------------------------------------------------------->
 
-<div id="materialPlaneSensorTab" class="mpTabContent" style="display:block">
+<div id="materialPlaneSensorTab" class="mpTabContent">
     <div class="form-elements">
         <label class="tooltip">{{localize "MP.SENSOR_USB.LABEL"}}
             <span class="tooltiptext">{{localize "MP.SENSOR_USB.TOOLTIP"}}</span>

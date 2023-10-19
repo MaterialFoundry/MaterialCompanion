@@ -6,7 +6,7 @@ const { materialPlaneWsClient, materialPlaneSerial } = require('./modules/materi
 
 
 let win;
-let connections = [];
+app.connections = [];
 //let wss;
 let mdClients = [];
 //let mpClient;
@@ -47,14 +47,21 @@ async function initializeWebsocket(window, eventEm) {
     win = window
     eventEmitter = eventEm;
     version = app.getVersion();
+    sendToRenderer('appVersion',version)
     //port = await getSetting('port');
     port = await settings.get('port');
     console.log(`Starting websocket on port ${port}`)
     sendToRenderer('notification',`Starting websocket on port ${port}`)
     app.wss = new WebSocket.WebSocketServer({ port });
-    setTimeout(()=> {
+    setTimeout(async()=> {
         app.mpClient = new materialPlaneWsClient(app.wss, window);
         mpSerial = new materialPlaneSerial(window);
+        const connMode = await settings.get('sensorConnectionMode');
+        if (connMode == 'start') {
+            const ip = await settings.get('mpSensorIp');
+            app.mpClient.start(ip, app.wss);
+        }
+        
     },100);
     
     /*
@@ -109,8 +116,7 @@ async function initializeWebsocket(window, eventEm) {
                 userName
             });
             
-            connections = connections.filter(c => c.module != target);
-            
+            app.connections = app.connections.filter(c => c.source != source || c.userId != userId);
             /*
             if (target == "MK"){
                 console.log('Foundry VTT - MK disconnected');
@@ -120,17 +126,17 @@ async function initializeWebsocket(window, eventEm) {
             }
             else if (target == "MD"){
                 console.log('Foundry VTT - MD disconnected');
-                const index = connections.findIndex(c => c.conId == connection);
-                connections.splice(index,1);
+                const index = app.connections.findIndex(c => c.conId == connection);
+                app.connections.splice(index,1);
                 MDConnected = false;
                 eventEmitter.emit('ws', 'connected', target, false);
                 saveSetting(`${target}connected`,false,'temp');
             }
             else if (target == "SD") {
                 console.log('Stream Deck disconnected');
-                const index = connections.findIndex(c => c.conId == connection.conId);
-                connections.splice(index,1);
-                if (connections.find(c => c.target == target) == undefined) {
+                const index = app.connections.findIndex(c => c.conId == connection.conId);
+                app.connections.splice(index,1);
+                if (app.connections.find(c => c.target == target) == undefined) {
                     SDConnected = false;
                     eventEmitter.emit('ws', 'connected', target, false);
                     saveSetting(`${target}connected`,false,'temp');
@@ -146,8 +152,8 @@ async function initializeWebsocket(window, eventEm) {
             }
             else if (target == "MP"){
                 console.log('Foundry VTT - MP disconnected');
-                const index = connections.findIndex(c => c.conId == connection.conId);
-                connections.splice(index,1);
+                const index = app.connections.findIndex(c => c.conId == connection.conId);
+                app.connections.splice(index,1);
                 MPConnected = false;
                 try {
                     wsSensor.close();
@@ -157,8 +163,8 @@ async function initializeWebsocket(window, eventEm) {
                 saveSetting(`${target}connected`,false,'temp');
             }
             else {
-                const index = connections.findIndex(c => c.conId == connection.conId);
-                connections.splice(index,1);
+                const index = app.connections.findIndex(c => c.conId == connection.conId);
+                app.connections.splice(index,1);
                 const data = {
                     target,
                     type: 'disconnected',
@@ -177,7 +183,7 @@ async function initializeWebsocket(window, eventEm) {
     app.wss.broadcast = async function broadcast(data, target, source) {
         sendToRenderer('wsBroadcast',{data,target,source});
         let msg = JSON.stringify(data);
-        let conn = connections.filter(c => c.source == target);
+        let conn = app.connections.filter(c => c.source == target);
         let clientData = [];
         //console.log('send',target,source, conn.length)
         if (target == 'MaterialDeck_Foundry' || target == 'MaterialDeck_Device') clientData = await settings.get('clientData');
@@ -209,7 +215,7 @@ async function initializeWebsocket(window, eventEm) {
         if (target == undefined) {
             let msg = JSON.stringify(data);
 
-            for (let connection of connections) {
+            for (let connection of app.connections) {
                 if (connection.target == data.target) {
                     connection.ws.send(msg);
                     return true;
@@ -218,7 +224,7 @@ async function initializeWebsocket(window, eventEm) {
             return false;
         }
         else {
-            for (let connection of connections) {
+            for (let connection of app.connections) {
                 if (connection.target == target) {
                     connection.ws.send(data);
                     return true;
@@ -262,13 +268,13 @@ async function setServerConfig(JSONdata, ws) {
         devices,
     }
 
-    if (connections.find(c => c.userId == userId && c.target == target && c.source == source)) {
+    if (app.connections.find(c => c.userId == userId && c.target == target && c.source == source)) {
         console.log('Connection already exists, clearing earlier entry');
-        connections = connections.filter(c => c.userId != userId);
+        app.connections = app.connections.filter(c => c.userId != userId);
     }
-    connections.push(connection);
+    app.connections.push(connection);
 
-    //console.log('connections',connections)
+    //console.log('connections',app.connections)
 
     sendToRenderer('serverConfig',{
         type: JSONdata.type,
@@ -280,18 +286,16 @@ async function setServerConfig(JSONdata, ws) {
     });
 
    // sendToRenderer('connections',{
-    //    connections: JSON.stringify(connections)
+    //    connections: JSON.stringify(app.connections)
     //});
 
 
-    if (target == 'MaterialPlane_Device') {
-        app.mpClient.start(JSONdata.sensorIp, app.wss);
-        
-    }
-    else if (target == 'SD') {
-        
-        //eventEmitter.emit('ws', 'connected', 'SD', false);
-        //saveSetting('SDconnected', false, 'temp');
+    if (source == 'MaterialPlane_Foundry') {
+        const connectionMode = await settings.get('sensorConnectionMode');
+        if (connectionMode == 'module') {
+            const ip = await settings.get('mpSensorIp');
+            app.mpClient.start(ip, app.wss);
+        }
     }
     else if (source == "MaterialDeck_Foundry") {
         console.log('Foundry VTT - MD Connected');
@@ -339,7 +343,7 @@ async function setServerConfig(JSONdata, ws) {
                 conId: connectionId,
                 target
             };
-            connections.push(connection);
+            app.connections.push(connection);
             connectionId++;
             SDConnected = true;
             console.log('Stream Deck connected');
@@ -361,7 +365,7 @@ async function setServerConfig(JSONdata, ws) {
 }
 
 function getConnections() {
-    return connections;
+    return app.connections;
 }
 
 module.exports = { initializeWebsocket, getConnections };

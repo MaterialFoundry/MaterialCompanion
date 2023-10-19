@@ -1,0 +1,24 @@
+.canvas {
+    width: 99%;
+    min-width: 99%;
+    height: 99%;
+    min-height: 99%;
+    padding: 5px;
+
+    background-color: white
+}
+
+.row {
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+
+.block {
+    display: inline-block;
+    width: 9.4%;
+    height: 30px;
+    margin: 0px;
+    border-radius: 5px;
+    border: 2px solid black
+}

@@ -76,13 +76,11 @@ class SerPort {
     errorTimeout;
 
     async scanSerialPorts() {
+        
         const ports = await scanSerialPorts();
-        if (ports.filter(p => p.name === this.type) != undefined) {
-            this.selectedPort = ports.filter(p => p.name === this.type)[0];
-        }
-        else {
-            this.selectedPort = ports[0];
-        }
+        this.selectedPort = ports.find(p => p.name.includes(this.type));
+        if (this.selectedPort == undefined) this.selectedPort = ports[0];
+        
         if (this.type == "Sensor") {
             this.updateSerialPortElmnt(serialports, "comPort");
             this.updateSerialPortElmnt(serialports, "sensorComPort");
