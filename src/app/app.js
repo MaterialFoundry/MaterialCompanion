@@ -2,7 +2,7 @@ const { Localization } = require("./localization.js");
 const { ipcRenderer } = require('electron');
 const { MaterialDeck } = require('./modules/materialDeck.js');
 const { MaterialKeys } = require('./modules/materialKeys.js');
-const { MaterialPlane } = require('./modules/materialPlane.js');
+const { MaterialPlane, updateSensorData } = require('./modules/materialPlane.js');
 const { SerPort } = require("./modules/serialPort.js");
 const { PopUp, getDataFromMain } = require("./misc.js")
 
@@ -30,7 +30,8 @@ ipcRenderer.on('asynchronous-message', async function (evt, message) {
     }
     else if (message.type == 'wsBroadcast') {
         if (message.data.source == 'MaterialPlane_Device') {
-          //  console.log('sensor rec:',message.data.data)
+            //console.log('sensor rec:',message.data.data)
+            if (message.data.data.status == 'update') updateSensorData(message.data.data);
         }
     }
     else if (message.type == 'refreshWindow') {
@@ -73,9 +74,18 @@ ipcRenderer.on('asynchronous-message', async function (evt, message) {
     else if (message.type == 'midiDevices') materialKeys.updateDevices(message.inputs, message.outputs);
 
     else if (message.type == 'materialPlane_deviceConnected') {
-        document.getElementById("MaterialPlane_Device").checked = true;
-        document.getElementById("MaterialPlane_Device2").checked = true;
-        document.getElementById("mpSensorConnect").innerHTML = i18n.localize("DISCONNECT");
+        if (document.getElementById("MaterialPlane_Device") == undefined) {
+            setTimeout(()=>{
+                document.getElementById("MaterialPlane_Device").checked = true;
+                document.getElementById("MaterialPlane_Device2").checked = true;
+                document.getElementById("mpSensorConnect").innerHTML = i18n.localize("DISCONNECT");
+            },100);
+        }
+        else {
+            document.getElementById("MaterialPlane_Device").checked = true;
+            document.getElementById("MaterialPlane_Device2").checked = true;
+            document.getElementById("mpSensorConnect").innerHTML = i18n.localize("DISCONNECT");
+        }
     }
     else if (message.type == 'materialPlane_deviceDisconnected') {
         document.getElementById("MaterialPlane_Device").checked = false;
@@ -122,7 +132,6 @@ document.addEventListener("DOMContentLoaded", async function(){
         document.getElementById('materialCompanionAddressRemote').value=`${ip.address()}:${wsPort}`
 
         document.getElementById('runInTray').checked = await ipcRenderer.invoke('getSetting','runInTray');
-        //document.getElementById('enableUSB').checked = await ipcRenderer.invoke('getSetting','enableMpUsb');
 
         //Fill language selector
         let languageOptions = [];

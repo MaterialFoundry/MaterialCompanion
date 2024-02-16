@@ -56,7 +56,7 @@ async function initializeWebsocket(window, eventEm) {
     setTimeout(async()=> {
         app.mpClient = new materialPlaneWsClient(app.wss, window);
         mpSerial = new materialPlaneSerial(window);
-        const connMode = await settings.get('sensorConnectionMode');
+        const connMode = await settings.get('sensorConnectionEvent');
         if (connMode == 'start') {
             const ip = await settings.get('mpSensorIp');
             app.mpClient.start(ip, app.wss);
@@ -291,7 +291,7 @@ async function setServerConfig(JSONdata, ws) {
 
 
     if (source == 'MaterialPlane_Foundry') {
-        const connectionMode = await settings.get('sensorConnectionMode');
+        const connectionMode = await settings.get('sensorConnectionEvent');
         if (connectionMode == 'module') {
             const ip = await settings.get('mpSensorIp');
             app.mpClient.start(ip, app.wss);

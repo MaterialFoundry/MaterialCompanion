@@ -35,35 +35,39 @@
             <span class="tooltiptext">{{localize "MP.SENSOR_CONNECTION_EVENT.TOOLTIP"}}</span>
         </label>
         <div class="form-val">
-            <select id="mpSensorConnectMode">
+            <select id="mpSensorConnectionEvent">
                 <option value="module">{{localize "MP.SENSOR_CONNECTION_EVENT.MODULE"}}</option>
                 <option value="start">{{localize "MP.SENSOR_CONNECTION_EVENT.ONSTART"}}</option>
                 <option value="manual">{{localize "MP.SENSOR_CONNECTION_EVENT.MANUAL"}}</option>
             </select>
-            
         </div>
     </div>
 
+    <!-- 
     <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_CONNECTION_METHOD.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_CONNECTION_METHOD.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val">
+            <select id="mpSensorConnectionMethod">
+                <option value="wifi">{{localize "WIFI"}}</option>
+                <option value="usb">{{localize "USB"}}</option>
+            </select>
+        </div>
+    </div>
+-->
+
+    <div class="form-elements" id="mpSensorAddress">
         <label class="tooltip">{{localize "MP.SENSOR_CONNECTION_IP.LABEL"}}
             <span class="tooltiptext">{{localize "MP.SENSOR_CONNECTION_IP.HINT"}}</span>
         </label>
         <div class="form-val">
-            <input type="text" id="mpSensorIpAddress" value="materialsensor.local:3000"></input>
+            <input type="text" id="mpSensorIpAddress" value=""></input>
             <button type="button" id="mpSensorConnect">{{localize "CONNECT"}}</button>
         </div>
     </div>
 
-    <div class="form-elements" style="display:none">
-        <label class="tooltip">{{localize "MP.CONNECT_USB.LABEL"}}
-            <span class="tooltiptext">{{localize "MP.CONNECT_USB.TOOLTIP"}}</span>
-        </label>
-        <div class="form-val">
-            <input type="checkbox" id="enableUSB">
-        </div>
-    </div>
-
-    <div class="form-elements" style="display:none">
+    <div class="form-elements" id="mpSensorUSBConnection" style="display:none">
         <label class="tooltip">{{localize "MP.SENSOR_USB.LABEL"}}
             <span class="tooltiptext">{{localize "MP.SENSOR_USB.TOOLTIP"}}</span>
         </label>
@@ -142,11 +146,20 @@
         </div>
     </div>
     <div class="form-elements">
-        <label class="tooltip">{{localize "MP.SENSOR_WEBSERVERLINK.LABEL"}}
-            <span class="tooltiptext">{{localize "MP.SENSOR_WEBSERVERLINK.TOOLTIP"}}</span>
+        <label class="tooltip">{{localize "MP.SENSOR_NAME.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_NAME.TOOLTIP"}}</span>
         </label>
         <div class="form-val mpConf">
-            <label id="sensorWebserver">[placeholder]</label>
+            <label id="sensorName">[placeholder]</label>
+        </div>
+    </div>
+
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.SENSOR_OPENWEBSERVER.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_OPENWEBSERVER.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val">
+            <button type="button" id="openWebserver">{{localize "WEBSERVER"}}</button>
         </div>
     </div>
 
@@ -172,14 +185,34 @@
     <h3>{{localize "UPDATE"}}</h3>
 
     <div class="form-elements">
+        <label class="tooltip">Update Method
+            <span class="tooltiptext">Set the sensor update method. USB requires the sensor to be connected using a USB cable, WiFi requires the sensor to be connected to the WiFi network.</span>
+        </label>
+        <div class="form-val">
+            <select id="sensorUploadMethod">
+                <option value="USB">USB</option>
+                <option value="WiFi_Firmware">WiFi - Firmware</option>
+                <option value="WiFi_Webserver">WiFi - Webserver</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-elements" id="mpUpdateAddressWrapper" style="display:none">
+        <label class="tooltip">{{localize "MP.SENSOR_CONNECTION_IP.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.SENSOR_CONNECTION_IP.HINT"}}</span>
+        </label>
+        <div class="form-val">
+            <input type="text" id="mpUpdateAddress" value="materialsensor.local"></input>
+        </div>
+    </div>
+
+    <div class="form-elements">
         <label class="tooltip">{{localize "MP.SENSOR_VARIANT.LABEL"}}
             <span class="tooltiptext">{{localize "MP.SENSOR_VARIANT.TOOLTIP"}}</span>
         </label>
         <div class="form-val">
             <select id="sensorVariantUpload">
                 <option value="Production">Production</option>
-                <option value="DIY Full">DIY Full</option>
-                <option value="DIY Basic">DIY Basic</option>
             </select>
         </div>
     </div>
@@ -201,6 +234,15 @@
         <div class="form-val">
             <select id="sensorWsVersionList">
             </select>
+        </div>
+    </div>
+
+    <div class="form-elements">
+        <label class="tooltip">{{localize "MP.INCLUDE_PRERELEASE.LABEL"}}
+            <span class="tooltiptext">{{localize "MP.INCLUDE_PRERELEASE.TOOLTIP"}}</span>
+        </label>
+        <div class="form-val">
+            <input type="checkbox" id="sensorPreReleases">
         </div>
     </div>
     

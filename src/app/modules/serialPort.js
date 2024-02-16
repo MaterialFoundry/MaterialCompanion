@@ -195,11 +195,11 @@ class SerPort {
         }
         catch (error) {
             validJson = false;
-            console.log('could not parse',error)
+            console.log('could not parse',{error})
         }
 
         if (validJson) {
-            //console.log(data);
+            console.log(data);
             if (data.status == 'update') {
                 document.getElementById("sensorVariant").innerHTML = data.hardwareVariant;
                 document.getElementById("sensorFirmwareVer").innerHTML = 'v' + data.firmwareVersion;
@@ -207,7 +207,7 @@ class SerPort {
                 document.getElementById("sensorWiFiConnected").checked = data.network.wifiConnected;
                 document.getElementById("sensorSSID").innerHTML = data.network.ssid;
                 document.getElementById("sensorIP").innerHTML = data.network.ip;
-                document.getElementById("sensorWebserver").innerHTML = `<a href="http://${data.network.ip}" target="_blank" style="color:gray">http://${data.network.ip}</a>`;
+                document.getElementById("sensorName").innerHTML = data.network.name;
                 for (let elmnt of document.querySelectorAll('.mpConf label')) elmnt.style.color = 'white';
                 if (parent.tempOpen == 'update') {
                     clearTimeout(this.errorTimeout);

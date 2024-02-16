@@ -4,21 +4,36 @@ const fs = require('fs');
 const fsPromises = require('fs').promises;
 const { getSetting, setSetting, setData } = require("../misc.js")
 const decompress = require("decompress");
+const dns = require('node:dns');
 
 const https = require('https'); // or 'https' for https:// URLs
 
 const sensorUrl = "https://api.github.com/repos/MaterialFoundry/MaterialPlane_Sensor/releases";
+//const sensorUrl = "https://api.github.com/repos/MaterialFoundry/Sensor_Test/releases";
 const penUrl = "https://api.github.com/repos/MaterialFoundry/MaterialPlane_Pen/releases";
 const baseUrl = "https://api.github.com/repos/MaterialFoundry/MaterialPlane_Base/releases";
 
 let popup;
 let baseEepromData = [];
 let penEepromData = [];
-let sensorConnectionMode;
+let sensorConnectionEvent;
+let sensorConnectionMethod;
 let sensorIp;
 
 function startGame(game) {
     setData('startGame',game);
+}
+
+function updateSensorData(data) {
+    console.log(data);
+    document.getElementById("sensorVariant").innerHTML = data.hardwareVariant;
+    document.getElementById("sensorFirmwareVer").innerHTML = 'v' + data.firmwareVersion;
+    document.getElementById("sensorWebserverVer").innerHTML = 'v' + data.webserverVersion;
+    document.getElementById("sensorWiFiConnected").checked = data.network.wifiConnected;
+    document.getElementById("sensorSSID").innerHTML = data.network.ssid;
+    document.getElementById("sensorIP").innerHTML = data.network.ip;
+    document.getElementById("sensorName").innerHTML = data.network.name;
+    for (let elmnt of document.querySelectorAll('.mpConf label')) elmnt.style.color = 'white';
 }
 
 class MaterialPlane {
@@ -26,11 +41,15 @@ class MaterialPlane {
         popup = pUp;
     }
 
+    sensorVariants = ["Production"];
     sensorReleases = [];
+    sensorVariantReleases = [];
+    webserverReleases = [];
     baseReleases = [];
     penReleases = [];
     pymcuprogInstalled = false;
     pythonInstalled = false;
+    pyserialInstalled = false;
     pipInstalled = false;
     pythonCmd = window.navigator.platform == 'Win32' ? 'py' : 'python3';
 
@@ -56,9 +75,25 @@ class MaterialPlane {
             sensorPort.openSerialPort(true, 'update');
             setTimeout(()=>{sensorPort.write(JSON.stringify({event:"getStatus"}))},100);
             for (let elmnt of document.querySelectorAll('.mpConf label')) elmnt.style.color = "#2d3058";
-            document.getElementById("sensorWebserver").innerHTML = "[placeholder]";
             document.getElementById("sensorWiFiConnected").checked = false;
         });
+
+        document.getElementById("openWebserver").addEventListener('click', () => {
+            if (document.getElementById("sensorIP").style.color == "") {
+                const popupContent = `
+                    Could not open webserver because no valid IP address was found.<br>
+                    Try reading the sensor configuration using the 'Read' button.
+                `
+                popup.open(popupContent, true);
+                return;
+            }
+            const sensorIp = "http://" + document.getElementById("sensorIP").innerHTML;
+            console.log(sensorIp)
+            open( sensorIp, function (err) {
+                if ( err ) throw err;    
+            });
+        });
+
         //document.getElementById("sensorVersionList").addEventListener('change', (e) => {document.getElementById("sensorUploadForm").style.display = e.target.value == 'uploadFile' ? "" : "none";})
         document.getElementById("connectWiFiBtn").addEventListener('click', () => {
             const popupContent = `
@@ -131,8 +166,21 @@ class MaterialPlane {
                 setTimeout(()=>{sensorPort.write(JSON.stringify({event:"connectWifi", ssid:document.getElementById("SSID").value, pw: document.getElementById("password").value}))},100);
             });
         });
+        document.getElementById("sensorVariantUpload").addEventListener('change', () => {
+            this.updateSensorFirmwareList();
+        });
         document.getElementById("updateSensorFirmware").addEventListener('click', () => {
-            this.updateSensor(sensorPort.getSerialPort());
+            this.updateSensor(sensorPort);
+        });
+        document.getElementById("sensorPreReleases").checked = getSetting('mpSensorPreReleases');
+        document.getElementById("sensorPreReleases").addEventListener('change', async (evt) => {
+            await setSetting('mpSensorPreReleases', evt.target.checked);
+            this.updateSensorFirmwareList();
+            //this.updateSensor();
+        });
+        document.getElementById("sensorUploadMethod").addEventListener('change', (event) => {
+            if (event.target.value == "USB") document.getElementById("mpUpdateAddressWrapper").style.display = "none";
+            else document.getElementById("mpUpdateAddressWrapper").style.display = "";
         });
 
 
@@ -171,10 +219,25 @@ class MaterialPlane {
         sensorPort.scanSerialPorts();
         dockPort.scanSerialPorts();
 
-        document.getElementById("mpSensorConnectMode").addEventListener('change', (evt) => {
-            sensorConnectionMode = evt.target.value;
-            setSetting('sensorConnectionMode', sensorConnectionMode);
+        document.getElementById("mpSensorConnectionEvent").addEventListener('change', (evt) => {
+            sensorConnectionEvent = evt.target.value;
+            setSetting('sensorConnectionEvent', sensorConnectionEvent);
         });
+
+        /*
+        document.getElementById("mpSensorConnectionMethod").addEventListener('change', (evt) => {
+            sensorConnectionMethod = evt.target.value;
+            if (sensorConnectionMethod == 'wifi') {
+                document.getElementById("mpSensorAddress").style.display = "";
+                document.getElementById("mpSensorUSBConnection").style.display = "none";
+            }
+            else {
+                document.getElementById("mpSensorAddress").style.display = "none";
+                document.getElementById("mpSensorUSBConnection").style.display = "";
+            }
+            setSetting('sensorConnectionMethod', sensorConnectionMethod);
+        });
+        */
 
         document.getElementById("mpSensorIpAddress").addEventListener('change', (evt) => {
             sensorIp = evt.target.value;
@@ -185,8 +248,11 @@ class MaterialPlane {
             setData('connectMpSensor',null);
         })
 
-        sensorConnectionMode = await getSetting('sensorConnectionMode');
-        document.getElementById("mpSensorConnectMode").value = sensorConnectionMode;
+        sensorConnectionEvent = await getSetting('sensorConnectionEvent');
+        document.getElementById("mpSensorConnectionEvent").value = sensorConnectionEvent;
+        //sensorConnectionMethod = await getSetting('sensorConnectionMethod');
+        //console.log('connMethod',sensorConnectionMethod)
+        //document.getElementById("mpSensorConnectionMethod").value = sensorConnectionMethod;
         sensorIp = await getSetting('mpSensorIp');
         document.getElementById("mpSensorIpAddress").value = sensorIp;
         document.getElementById("mpSensorIpAddress").style.color = 'white';
@@ -265,10 +331,7 @@ class MaterialPlane {
 
     async installPymcuprog() {
         this.pythonInstalled = await this.checkPythonInstall();
-        if (!this.pythonInstalled) {
-
-            return false;
-        }
+        if (!this.pythonInstalled) return false;
 
         if (this.pymcuprogInstalled && this.pipInstalled) return true;
 
@@ -646,10 +709,38 @@ class MaterialPlane {
         });
     }
 
-    async updateSensor(port) {
+    getIpFromHostname(hostname) {
+        return new Promise((resolve) => {
+            dns.lookup(hostname, (err, address, family) => {
+                if (err) resolve({err})
+                else resolve ({address})
+            })
+        })
+    }
+
+    getFileStats(path) {
+        return new Promise((resolve) => {
+            fs.stat(path, (err, stats) => {
+                if (err) resolve ({err});
+                else resolve(stats)
+            })
+        })
+    }
+
+    async updateSensor(sensorPort) {
         if (await this.checkPythonInstall() == false) return;
-        
-        console.log(`Update sensor on port: ${port.path}`);
+
+        const port = sensorPort.getSerialPort();
+        const updateAddress = document.getElementById("mpUpdateAddress").value;
+        const updateMethod = document.getElementById("sensorUploadMethod").value;
+        let updateIp;
+     
+        if (updateMethod == "USB")
+            console.log(`Update sensor using USB on port: ${port.path}`);
+        else if (updateMethod == "WiFi_Firmware")
+            console.log(`Update sensor firmware over WiFi on address: ${updateAddress}`);
+        else if (updateMethod == "WiFi_Webserver")
+            console.log(`Update sensor webserver over WiFi on address: ${updateAddress}`);
 
         let parent = this;
 
@@ -666,69 +757,113 @@ class MaterialPlane {
         popup.open(popupContent, false, true);
         popup.clearDetails();
 
-        const hardwareVariant = document.getElementById("sensorVariantUpload").value;
         if (document.getElementById("sensorVersionList").value == 'none' && document.getElementById("sensorWsVersionList").value == 'none') {
             popup.content(`No firmware or webserver selected.\n\n`);
             return;
         }
-        const firmwareRelease = this.sensorReleases.find(r => r.version == document.getElementById("sensorVersionList").value);
-        const webserverRelease = this.sensorReleases.find(r => r.version == document.getElementById("sensorWsVersionList").value);
 
-        popup.addDetails(`Update sensor ${firmwareRelease != undefined && webserverRelease != undefined ? 'firmware & webserver' : firmwareRelease != undefined ? 'firmware' : 'webserver'} on port: ${port.path}.\n\n`);
+        const firmwareRelease = this.sensorVariantReleases.find(r => r.name == document.getElementById("sensorVersionList").value);
+        const webserverRelease = this.webserverReleases.find(r => r.name == document.getElementById("sensorWsVersionList").value);
+
+        if (updateMethod == "USB") popup.addDetails(`Update sensor ${firmwareRelease != undefined && webserverRelease != undefined ? 'firmware & webserver' : firmwareRelease != undefined ? 'firmware' : 'webserver'} on port: ${port.path}.\n\n`);
+        else if (updateMethod == "WiFi_Firmware") popup.addDetails(`Update sensor firmware over WiFi to: ${updateAddress}.\n\n`);
+        else if (updateMethod == "WiFi_Webserver") popup.addDetails(`Update sensor webserver over WiFi to: ${updateAddress}.\n\n`);
+        
 
         let err = false;
         let errMsg = "";
-        if (port == undefined) {
-            err = true;
-            errMsg = i18n.localize("MP.SENSOR_UPDATE.ERR_COM");
+        if (updateMethod == "USB") {
+            if (port == undefined) {
+                err = true;
+                errMsg = i18n.localize("MP.SENSOR_UPDATE.ERR_COM");
+            }
+            else if (port.name == "Sensor") {
+                err = true;
+                errMsg = i18n.localize("MP.SENSOR_UPDATE.ERR_UPDATEMODE");
+            }
+            else if (firmwareRelease == undefined && webserverRelease == undefined) {
+                err = true;
+                errMsg = i18n.localize("MP.SENSOR_UPDATE.ERR_FILE");
+            }
         }
-        else if (port.name == "Sensor") {
-            err = true;
-            errMsg = i18n.localize("MP.SENSOR_UPDATE.ERR_UPDATEMODE");
+        else {
+            const resolvedHostname = await this.getIpFromHostname(updateAddress);
+            updateIp = resolvedHostname.address;
+            if (resolvedHostname.err != undefined) {
+                err = true;
+                errMsg = i18n.localize("MP.SENSOR_UPDATE.ERR_IP");
+            }
+            if (updateAddress == undefined || updateAddress == "") {
+                err = true;
+                errMsg = i18n.localize("MP.SENSOR_UPDATE.ERR_ADDR");
+            }
+            else if ((updateMethod == "WiFi_Firmware" && firmwareRelease == undefined) || (updateMethod == "WiFi_Webserver" && webserverRelease == undefined)) {
+                err = true;
+                errMsg = i18n.localize("MP.SENSOR_UPDATE.ERR_FILE");
+            }
         }
-        else if (firmwareRelease == undefined && webserverRelease == undefined) {
-            err = true;
-            errMsg = i18n.localize("MP.SENSOR_UPDATE.ERR_FILE");
-        }
+        
         if (err) {
            // console.warn(errMsg);
             popup.error(errMsg, true);
             popup.addDetails(errMsg);
             return;
         }
+        else if (updateIp != undefined) {
+            popup.addDetails(`Resolved IP '${updateIp}' from sensor address.\n`)
+        }
 
-        let folder = path.join(__dirname, 'materialPlane');
-        const esptoolPath = path.join(folder, 'esptool', 'esptool.py');
+        let folder = path.join(__dirname, 'materialPlane', 'firmware');
+        const esptoolPath = path.join(__dirname, 'materialPlane', 'esptool', 'esptool.py');
+        const espotaPath = path.join(__dirname, 'materialPlane', 'espota.py');
         let zipPath = path.join(folder, 'firmware.zip');
         let webserverPath = path.join(folder, 'webserver.bin');
         let firmwarePath, bootloaderPath, app0Path, partitionsPath;
 
-        let cmd = [esptoolPath, '--chip', hardwareVariant=='Production' ? 'esp32s3' : 'esp32', '-p', port.path, 'write_flash', '-z'];
+        fs.mkdir(folder,function(e){
+            if(!e || (e && e.code === 'EEXIST')){
+                //do something with contents
+            } else {
+                //debug
+                console.log(e);
+            }
+        });
 
-        if (firmwareRelease != undefined) {
+        let cmd = [];
+        if (updateMethod == "USB")
+            cmd.push(esptoolPath, '--after', 'hard_reset', '--chip', firmwareRelease.chip, '-p', port.path, 'write_flash', '-z');
+        else
+            cmd.push(espotaPath, '-i', updateIp, '-p', '3232');
+
+        if (updateMethod != "WiFi_Webserver" && firmwareRelease != undefined) {
  
             popup.addDetails(`Downloading firmware file.\n`)
             
             try {
-                await this.downloadFile(firmwareRelease.variants.find(r=> r.variant == hardwareVariant).url, zipPath);
+                await this.downloadFile(firmwareRelease.url, zipPath);
 
                 popup.addDetails(`Unzipping files.\n`)
+
                 try {
                     await decompress(zipPath,folder).then((files) => {
-                        firmwarePath = path.join(folder, files.find(f => f.path.includes('irmware')).path);
-                        bootloaderPath = path.join(folder, files.find(f => f.path.includes('ootloader')).path);
-                        app0Path = path.join(folder, files.find(f => f.path.includes('app0')).path);
-                        partitionsPath = path.join(folder, files.find(f => f.path.includes('artitions')).path);
-
-                        cmd.push('0x0',bootloaderPath,'0x8000',partitionsPath,'0xe000',app0Path,'0x10000',firmwarePath)
+                        const partitionTableFile = files.find(f => f.path.includes('artitionTable'));
+                        const partitionTable = JSON.parse(partitionTableFile.data.toString());
+                        if (updateMethod == "USB") {
+                            for (let p of partitionTable) {
+                                cmd.push(p.address, path.join(folder, p.src));
+                            }
+                        }
+                        else {
+                            const firmwareFile = partitionTable.find(p => p.label == 'firmware');
+                            cmd.push('-f', path.join(folder,firmwareFile.src));
+                        }
                     })
-                    
                 }
                 catch (err) {
                     const msg = "Could not unzip firmware file.";
                     popup.addDetails(msg + '\n');
                     popup.error(msg, true);
-                   // console.warn(msg);
+                    console.err(err);
                     return;
                 }
             }
@@ -741,12 +876,15 @@ class MaterialPlane {
             }
         }
 
-        if (webserverRelease != undefined) {
-            cmd.push('0x290000',webserverPath)
+        if (updateMethod != "WiFi_Firmware" && webserverRelease != undefined) {
+            if (updateMethod == "USB")
+                cmd.push('0x290000',webserverPath)
+            else 
+                cmd.push('-s', '-f' ,webserverPath)
             popup.addDetails(`Downloading webserver file.\n`)
 
             try {
-                await this.downloadFile(webserverRelease.variants[0].url, webserverPath);
+                await this.downloadFile(webserverRelease.url, webserverPath);
             }
             catch (err) {
                 const msg = "Could not download webserver.";
@@ -757,6 +895,15 @@ class MaterialPlane {
             }
         }
 
+        console.log('cmd',cmd)
+        console.log('test',cmd.slice(-1)[0])
+        let fileSize = 0;
+        if (updateMethod != "USB") {
+            const fileStats = await this.getFileStats(cmd.slice(-1)[0]);
+            fileSize = fileStats.size/1000;
+        }
+            
+        
         let dataToSend;
         console.log(`Uploading data to sensor`);
         popup.addDetails(`Uploading data to sensor.\n`);
@@ -786,23 +933,48 @@ class MaterialPlane {
             
         });
 
+        let updateCounter = 0;
+        let updatePercentage = -1;
+        let updateStarted = false;
         python.stderr.on("data", data => {
-            console.log(`stderr: ${data}`);   
-            popup.addDetails(`stderr: ${data}\n`);
+            if (updateMethod != "USB" && data == 'Uploading.') {
+                updateStarted = true;
+            }
+            if (updateStarted && updateMethod != "USB" && data == '.') {
+                updateCounter++;
+                const perc = Math.ceil(100*updateCounter/fileSize);
+                if (perc != updatePercentage) {
+                    updatePercentage = perc;
+                    console.log(`Uploading: ${perc}%`);
+                    popup.addDetails(`${perc}%, `);
+                    document.getElementById("sensorUpdateProgress").value=perc;
+                    document.getElementById("sensorUpdateProgressNum").innerHTML=perc+'%';
+                }
+            }
+            else {
+                console.log(`stderr: ${data}`);   
+                popup.addDetails(`stderr: ${data}\n`);
+            }
         });
         
         python.on('close', (code) => {
             console.log(`Esptool closed with code: ${code}, data:`,{data:dataToSend});
-            if (code != 0) {
+            if (code == 2 && dataToSend.includes('--chip argument')) {
+                popup.error(i18n.localize("MP.SENSOR_UPDATE.ERR_CHIP"), true); 
+            }
+            else if (updateMethod != "USB" && code == 0) {
+                document.getElementById("sensorUpdateProgress").value=100;
+                    document.getElementById("sensorUpdateProgressNum").innerHTML='100%';
+                document.getElementById("updatePopupContent").innerHTML = i18n.localize("MP.SENSOR_UPDATE.DONEOTA");
+            }
+            else if (updateMethod != "USB" && code == 1) {
+                popup.error(i18n.localize("MP.SENSOR_UPDATE.ERR_OTA_CONN"), true); 
+            }
+            else if (code != 0) {
                 popup.error(i18n.localize("MP.SENSOR_UPDATE.ERR"), true);
             }
             popup.addDetails(`Closed: ${code}`);
-            parent.deleteFile(zipPath);
-            parent.deleteFile(firmwarePath);
-            parent.deleteFile(bootloaderPath);
-            parent.deleteFile(app0Path);
-            parent.deleteFile(partitionsPath);
-            parent.deleteFile(webserverPath);
+            fs.rmSync(folder, { recursive: true, force: true });
         });
 
         python.on('error', (err) => {
@@ -810,6 +982,17 @@ class MaterialPlane {
             popup.addDetails(err);
         })
         return;
+        
+
+        
+
+        /*
+        console.log('files',this.files)
+        for (let file of this.files) {
+            this.deleteFile(path.join(folder, file.path))
+        }
+        this.deleteFile(zipPath);
+        */
     }
 
     async deleteFile(url) {
@@ -854,51 +1037,91 @@ class MaterialPlane {
         })
       }
 
+
+    async updateSensorFirmwareList() {
+        const selectedVariant = document.getElementById("sensorVariantUpload").value;
+        
+        this.sensorVariantReleases = this.sensorReleases.filter(r => r.variant == selectedVariant);
+        this.sensorVariantReleases.sort(function(a, b){
+            if (a.name < b.name) return 1;
+            if (a.name > b.name) return -1;
+            return 0;
+        });
+
+        const includePreReleases = await getSetting('mpSensorPreReleases');
+     
+        let elmnt = document.getElementById("sensorVersionList");
+        elmnt.innerHTML = "";
+        for (let r of this.sensorVariantReleases) {
+
+            if (!includePreReleases && r.prerelease) continue;
+            
+            const prerelease = r.prerelease ? " (Pre-Release)" : "";
+            elmnt.add(new Option(r.name+prerelease,r.name)); 
+        }
+        elmnt.add(new Option('None','none'));
+
+        const webserverReleases = this.webserverReleases;
+        webserverReleases.sort(function(a, b){
+            if (a.name < b.name) return 1;
+            if (a.name > b.name) return -1;
+            return 0;
+        });
+        elmnt = document.getElementById("sensorWsVersionList");
+        elmnt.innerHTML = "";
+        for (let r of webserverReleases) {
+            if (!includePreReleases && r.prerelease) {
+                //console.log('prerelease',r)
+                continue;
+            }
+            const prerelease = r.prerelease ? " (Pre-Release)" : "";
+            elmnt.add(new Option(r.name+prerelease,r.name)); 
+        }
+        elmnt.add(new Option('None','none'));
+    }
+
+    updateSensorVariants(newVariant) {
+        this.sensorVariants.push(newVariant);
+        let elmnt = document.getElementById("sensorVariantUpload");
+        elmnt.add(new Option(newVariant,newVariant));
+    }
+    
     async getReleases() {
         let parent = this;
         
         //Sensor releases
         $.getJSON(sensorUrl).done(function(releases) {
             for (let release of releases) {
-                if (release.draft) continue;
-                let variants = [];
-                for (let asset of release.assets) {
-                    let variant;
-                    let type;
-
-                    if (asset.name.includes("Production")) variant = "Production";
-                    else if (asset.name.includes("DIY")) variant = "DIY";
-                    else if (asset.name.includes("Webserver")) variant = "Webserver";
-
-                    if (asset.name.includes("Firmware")) type = 'firmware';
-                    else if (asset.name.includes("Bootloader")) type = 'bootloader';
-                    else if (asset.name.includes("boot_app0")) type = 'boot_app0';
-                    else if (asset.name.includes("Partitions")) type = 'partitions';
-
-                    variants.push({
-                        variant,
-                        type,
-                        url: asset.browser_download_url
+                if (release.name.includes("ebserver")) {
+                    parent.webserverReleases.push({
+                        name: release.name,
+                        url: release.assets[0].browser_download_url,
+                        prerelease: release.prerelease
                     })
+                    continue;
                 }
-                if (variants.length == 0) continue;
-                parent.sensorReleases.push({
-                    version: release.name,
-                    variants
-                })
-            }
 
-            let elmnt = document.getElementById("sensorVersionList");
-            for (let r of parent.sensorReleases.filter(r => r.version.includes('Firmware'))) {
-                elmnt.add(new Option(r.version,r.version), undefined);
-            }
-            elmnt.add(new Option('None','none'), undefined);
+                const variantsFile = release.assets.find(r => r.name == 'variants.json');
+                if (variantsFile == undefined) continue;
 
-            let elmntWs = document.getElementById("sensorWsVersionList");
-            for (let r of parent.sensorReleases.filter(r => r.version.includes('Webserver'))) {
-                elmntWs.add(new Option(r.version,r.version), undefined);
+                fetch(variantsFile.browser_download_url)
+                    .then((response) => response.json())
+                    .then(function(json) {
+                        for (let r of json) {
+                            if (parent.sensorVariants.filter(v => v == r.label).length == 0)
+                                parent.updateSensorVariants(r.label);
+                            
+                            parent.sensorReleases.push({
+                                name: release.name,
+                                variant: r.label,
+                                url: release.assets.find(a => a.name == r.src).browser_download_url,
+                                prerelease: release.prerelease,
+                                chip: r.chip
+                            })
+                        }
+                        parent.updateSensorFirmwareList();
+                    });
             }
-            elmntWs.add(new Option('None','none'), undefined);
         });
 
         //Base releases
@@ -1011,4 +1234,4 @@ function intToHexString(val) {
     return str;
 }
 
-module.exports = { MaterialPlane };
+module.exports = { MaterialPlane, updateSensorData };
