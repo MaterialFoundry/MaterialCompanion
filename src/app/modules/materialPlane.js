@@ -25,7 +25,7 @@ function startGame(game) {
 }
 
 function updateSensorData(data) {
-    console.log(data);
+    //console.log(data);
     document.getElementById("sensorVariant").innerHTML = data.hardwareVariant;
     document.getElementById("sensorFirmwareVer").innerHTML = 'v' + data.firmwareVersion;
     document.getElementById("sensorWebserverVer").innerHTML = 'v' + data.webserverVersion;
@@ -172,7 +172,7 @@ class MaterialPlane {
         document.getElementById("updateSensorFirmware").addEventListener('click', () => {
             this.updateSensor(sensorPort);
         });
-        document.getElementById("sensorPreReleases").checked = getSetting('mpSensorPreReleases');
+        document.getElementById("sensorPreReleases").checked = await getSetting('mpSensorPreReleases');
         document.getElementById("sensorPreReleases").addEventListener('change', async (evt) => {
             await setSetting('mpSensorPreReleases', evt.target.checked);
             this.updateSensorFirmwareList();
