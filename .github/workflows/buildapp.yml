@@ -15,7 +15,7 @@ jobs:
     # install node
     - uses: actions/setup-node@master
       with:
-        node-version: 18.16
+        node-version: 20.11
 
     - run: npm update
     - run: npm install
@@ -48,7 +48,7 @@ jobs:
     # install node
     - uses: actions/setup-node@master
       with:
-        node-version: 18.16
+        node-version: 20.11
 
     - id: get_version
       uses: battila7/get-version-action@v2
