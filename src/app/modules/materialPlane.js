@@ -25,7 +25,6 @@ function startGame(game) {
 }
 
 function updateSensorData(data) {
-    //console.log(data);
     document.getElementById("sensorVariant").innerHTML = data.hardwareVariant;
     document.getElementById("sensorFirmwareVer").innerHTML = 'v' + data.firmwareVersion;
     document.getElementById("sensorWebserverVer").innerHTML = 'v' + data.webserverVersion;
@@ -88,7 +87,6 @@ class MaterialPlane {
                 return;
             }
             const sensorIp = "http://" + document.getElementById("sensorIP").innerHTML;
-            console.log(sensorIp)
             open( sensorIp, function (err) {
                 if ( err ) throw err;    
             });
@@ -291,7 +289,6 @@ class MaterialPlane {
                 
             });
             checkInstall.on('error', (err) => {
-               // console.log('err',err);
                 const popupContent = `
                     <h2>Python Required</h2>
                     To configure or update the base, pen or sensor you need to install <a class="hyperlink" href="https://www.python.org/" target="_blank">Python</a>.<br>
@@ -416,7 +413,6 @@ class MaterialPlane {
 
         let parent = this;
         ls.stdout.on("data", data => {
-            //console.log(`stdout: ${data}`);
             const str = String.fromCharCode.apply(null, new Uint16Array(data));
 
             if (str.includes("Memory type: eeprom")) {
@@ -430,7 +426,6 @@ class MaterialPlane {
                         eepromData.push(Number(`0x${a}`));
                     }
                 }
-                //console.log(eepromData)
 
                 //if base
                 if (eepromData[0] == 1 || (eepromData[0] >> 2 && device == 'base')) {
@@ -468,7 +463,6 @@ class MaterialPlane {
                 }
             }
         });
-        //console.log(updateMessage)
 
         ls.stdout.on("data", data => {
              console.log(`stdout: ${data}`);
@@ -895,8 +889,6 @@ class MaterialPlane {
             }
         }
 
-        console.log('cmd',cmd)
-        console.log('test',cmd.slice(-1)[0])
         let fileSize = 0;
         if (updateMethod != "USB") {
             const fileStats = await this.getFileStats(cmd.slice(-1)[0]);
@@ -982,17 +974,6 @@ class MaterialPlane {
             popup.addDetails(err);
         })
         return;
-        
-
-        
-
-        /*
-        console.log('files',this.files)
-        for (let file of this.files) {
-            this.deleteFile(path.join(folder, file.path))
-        }
-        this.deleteFile(zipPath);
-        */
     }
 
     async deleteFile(url) {
@@ -1010,7 +991,6 @@ class MaterialPlane {
             // handle redirects
             if (code > 300 && code < 400 && !!response.headers.location) {
                 const msg = `Download redirected to: '${response.headers.location}'`;
-                //console.log(msg)
 
                 return resolve(
                     this.downloadFile(response.headers.location, targetFile)
@@ -1018,14 +998,11 @@ class MaterialPlane {
             }
 
             const msg = `Downloading file from: '${url}' to: '${targetFile}'`;
-            //console.log(msg)
-            //popup.addDetails('Downloading file\n');
       
             // save the file to disk
             const fileWriter = fs
               .createWriteStream(targetFile)
               .on('finish', () => {
-               // console.log('Download done')
                 popup.addDetails('Download done.\n');
                 resolve({})
               })
@@ -1071,7 +1048,6 @@ class MaterialPlane {
         elmnt.innerHTML = "";
         for (let r of webserverReleases) {
             if (!includePreReleases && r.prerelease) {
-                //console.log('prerelease',r)
                 continue;
             }
             const prerelease = r.prerelease ? " (Pre-Release)" : "";

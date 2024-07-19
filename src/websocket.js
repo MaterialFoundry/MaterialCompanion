@@ -98,6 +98,9 @@ async function initializeWebsocket(window, eventEm) {
             else if (JSONdata.target == "MaterialPlane_Device") {
                 app.mpClient.broadcast(JSONdata.data)
             }
+            else if (JSONdata.target == "MaterialKeys_Device") {
+                app.midi.onWsData(JSONdata);
+            }
             else {
                 app.wss.broadcast(JSONdata, JSONdata.target, source);
             }
@@ -117,62 +120,11 @@ async function initializeWebsocket(window, eventEm) {
             });
             
             app.connections = app.connections.filter(c => c.source != source || c.userId != userId);
-            /*
-            if (target == "MK"){
-                console.log('Foundry VTT - MK disconnected');
-                MKConnected = false;
-                eventEmitter.emit('ws', 'connected', target, false);
-                saveSetting(`${target}connected`,false,'temp');
+
+            if (source == 'MaterialKeys_Foundry' && await settings.get('mkConnectionEvent') == 'module') {
+                app.midi.disconnect();
             }
-            else if (target == "MD"){
-                console.log('Foundry VTT - MD disconnected');
-                const index = app.connections.findIndex(c => c.conId == connection);
-                app.connections.splice(index,1);
-                MDConnected = false;
-                eventEmitter.emit('ws', 'connected', target, false);
-                saveSetting(`${target}connected`,false,'temp');
-            }
-            else if (target == "SD") {
-                console.log('Stream Deck disconnected');
-                const index = app.connections.findIndex(c => c.conId == connection.conId);
-                app.connections.splice(index,1);
-                if (app.connections.find(c => c.target == target) == undefined) {
-                    SDConnected = false;
-                    eventEmitter.emit('ws', 'connected', target, false);
-                    saveSetting(`${target}connected`,false,'temp');
-                    if (MDConnected){
-                        const data = {
-                            target: 'MD',
-                            type: 'disconnected',
-                            data: 'SD'
-                        }
-                        app.wss.broadcast(data);
-                    }
-                }
-            }
-            else if (target == "MP"){
-                console.log('Foundry VTT - MP disconnected');
-                const index = app.connections.findIndex(c => c.conId == connection.conId);
-                app.connections.splice(index,1);
-                MPConnected = false;
-                try {
-                    wsSensor.close();
-                }
-                catch (err) {}
-                eventEmitter.emit('ws', 'connected', target, false);
-                saveSetting(`${target}connected`,false,'temp');
-            }
-            else {
-                const index = app.connections.findIndex(c => c.conId == connection.conId);
-                app.connections.splice(index,1);
-                const data = {
-                    target,
-                    type: 'disconnected',
-                    id: passthroughId
-                }
-                app.wss.broadcast(data);
-            }
-            */
+
             clearInterval(id);
         }); 
     });
@@ -185,13 +137,11 @@ async function initializeWebsocket(window, eventEm) {
         let msg = JSON.stringify(data);
         let conn = app.connections.filter(c => c.source == target);
         let clientData = [];
-        //console.log('send',target,source, conn.length)
         if (target == 'MaterialDeck_Foundry' || target == 'MaterialDeck_Device') clientData = await settings.get('clientData');
 
         for (let connection of conn) {
-            //console.log('connection',connection.source, source, connection.target, target)
             if (connection.source != target && connection.target != source) continue;
-            //console.log('connection',connection.source, connection.target, data)
+
             if (target == 'MaterialDeck_Foundry' && data.device != undefined) {
                 const user = clientData.find(c => c.userId == connection.userId);
                 if (user.materialDeck.blockedDevices.indexOf(data.device) != -1) continue;
@@ -200,40 +150,11 @@ async function initializeWebsocket(window, eventEm) {
                 const user = clientData.find(c => c.userId == data.userId);
                 
                 if (user.materialDeck.blockedDevices.indexOf(data.device) != -1) continue;
-
-                
-                //console.log('user',data.device,user,user.materialDeck.blockedDevices.indexOf(data.device))
             }
             sendToRenderer('wsBroadcast',{msg});
             connection.ws.send(msg)
             
         }
-        //console.log('message not sent',target,source)
-        
-        //console.log('conn',conn)
-        return;
-        if (target == undefined) {
-            let msg = JSON.stringify(data);
-
-            for (let connection of app.connections) {
-                if (connection.target == data.target) {
-                    connection.ws.send(msg);
-                    return true;
-                } 
-            }
-            return false;
-        }
-        else {
-            for (let connection of app.connections) {
-                if (connection.target == target) {
-                    connection.ws.send(data);
-                    return true;
-                }
-                    
-            }
-            return false;
-        }
-        return false;
     };
 }
 
@@ -274,8 +195,6 @@ async function setServerConfig(JSONdata, ws) {
     }
     app.connections.push(connection);
 
-    //console.log('connections',app.connections)
-
     sendToRenderer('serverConfig',{
         type: JSONdata.type,
         source,
@@ -284,11 +203,6 @@ async function setServerConfig(JSONdata, ws) {
         devices,
         userName
     });
-
-   // sendToRenderer('connections',{
-    //    connections: JSON.stringify(app.connections)
-    //});
-
 
     if (source == 'MaterialPlane_Foundry') {
         const connectionMode = await settings.get('sensorConnectionEvent');
@@ -320,48 +234,27 @@ async function setServerConfig(JSONdata, ws) {
         }
         app.wss.broadcast(data, data.target, data.source);
     }
-    return connection;
-
-    /*
-    else if (target == "SD"){
-        SDversion = JSONdata.version;
-        if (JSONdata.type == "disconnected"){
-            console.log('Stream Deck disconnected');
-            SDConnected = false;
-            if (MDConnected){
-                const data = {
-                    target: 'MD',
-                    type: 'disconnected',
-                    data: 'SD'
-                }
-                app.wss.broadcast(data);
-            }
+    else if (source == "MaterialKeys_Foundry") {
+        console.log('Foundry VTT - MK Connected');
+        const data = {
+            target: 'MaterialKeys_Foundry',
+            source: 'MaterialCompanion',
+            type: 'connected',
+            materialCompanionVersion: version
         }
-        else {
-            connection = {
-                ws,
-                conId: connectionId,
-                target
-            };
-            app.connections.push(connection);
-            connectionId++;
-            SDConnected = true;
-            console.log('Stream Deck connected');
+        app.wss.broadcast(data, data.target, data.source);
 
-            if (MDConnected){
-                const data = {
-                    target: 'MD',
-                    type: 'connected',
-                    data: 'SD',
-                    MSversion: version,
-                    SDversion: SDversion,
-                }
-                app.wss.broadcast(data);
+        if (app.midi.connected) {
+            const data = {
+                target: 'MaterialKeys_Foundry',
+                source: 'MaterialCompanion',
+                type: 'deviceConnected'
             }
+            app.wss.broadcast(data, data.target, data.source);
         }
+        else if (await settings.get('mkConnectionEvent') == 'module') app.midi.connect();
     }
-    */
- 
+    return connection;
 }
 
 function getConnections() {

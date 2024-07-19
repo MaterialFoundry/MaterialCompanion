@@ -13,12 +13,16 @@ async function setSetting(setting, value) {
 
 async function getDataFromMain(id) {
     const value = await ipcRenderer.invoke('getData',id);
-    //console.log('getSetting',id,value)
+    //console.log('getDataFromMain',id,value)
     return value;
 }
 
 function setData(key, value) {
     ipcRenderer.invoke('setData', key, value);
+}
+
+function invokeRenderer() {
+    ipcRenderer.invoke(...arguments);
 }
 
 class PopUp {
@@ -76,8 +80,9 @@ class PopUp {
         this.popupOpen = false;
     }
 
-    addDetails(msg) {
-        this.details += msg;
+    addDetails(msg, clear=false) {
+        if (clear) this.details = msg;
+        else this.details += msg;
         document.getElementById("popupDetailsContent").value = this.details;
     }
 
@@ -194,4 +199,4 @@ class ClientManager {
 
 let clientManager = new ClientManager();
 
-module.exports = { getSetting, setSetting, getDataFromMain, setData, DeviceManager, clientManager, PopUp, openPopup, closePopup }
+module.exports = { getSetting, setSetting, getDataFromMain, setData, invokeRenderer, DeviceManager, clientManager, PopUp, openPopup, closePopup }

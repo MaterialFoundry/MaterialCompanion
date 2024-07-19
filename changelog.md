@@ -1,4 +1,14 @@
 # Changelog Material Companion
+### v1.0.4 - 18-07-2024
+
+Additions:
+<ul>
+<li>Added support for Material Keys</li>
+<li>Added settings to hide tabs for unused modules</li>
+<li></li>
+<li></li>
+</ul>
+
 ### v1.0.3 - 17-02-2024
 
 Additions:

@@ -1,7 +1,7 @@
 {
   "name": "material-companion",
   "productName": "Material Companion",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Companion app for the Material Foundry modules and hardware",
   "main": "src/main.js",
   "languages": [
@@ -42,9 +42,15 @@
       },
       "makers": [
         {
-          "name": "@electron-forge/maker-squirrel",
+          "name": "@electron-forge/maker-wix",
           "config": {
-            "name": "materialcompanion"
+            "icon": "src/app/images/icons/win/icon.ico",
+            "name": "Material Companion",
+            "shortName": "MaterialCompanion",
+            "manufacturer": "Material Foundry",
+            "ui": {
+              "chooseDirectory": true
+            }
           }
         },
         {
@@ -81,6 +87,7 @@
     "@electron-forge/maker-dmg": "^7.2.0",
     "@electron-forge/maker-rpm": "^7.2.0",
     "@electron-forge/maker-squirrel": "^7.2.0",
+    "@electron-forge/maker-wix": "^7.2.0",
     "@electron-forge/maker-zip": "^7.2.0",
     "electron": "^28.2.3",
     "electron-wix-msi": "^5.0.0"

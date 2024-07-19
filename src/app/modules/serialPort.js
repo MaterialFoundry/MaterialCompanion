@@ -58,7 +58,6 @@ async function scanSerialPorts() {
             }
         } 
     });
-    //console.log(serialports)
     return serialports;
 }
 
@@ -199,7 +198,6 @@ class SerPort {
         }
 
         if (validJson) {
-            console.log(data);
             if (data.status == 'update') {
                 document.getElementById("sensorVariant").innerHTML = data.hardwareVariant;
                 document.getElementById("sensorFirmwareVer").innerHTML = 'v' + data.firmwareVersion;

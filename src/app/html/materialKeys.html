@@ -16,6 +16,49 @@
     </div>
 </div>
 
+<hr>
+
+<div class="form-elements">
+    <label class="tooltip">{{localize "MK.PROTOCOLS.LABEL"}}
+        <span class="tooltiptext">{{localize "MK.PROTOCOLS.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <select id="mkProtocol">
+        </select>
+    </div>
+</div>
+
+<div class="form-elements">
+    <label class="tooltip">{{localize "MK.SCAN_ON_START.LABEL"}}
+        <span class="tooltiptext">{{localize "MK.SCAN_ON_START.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <input class="checkbox" type="checkbox" id="mkScanOnStart">
+    </div>
+</div>
+
+<div class="form-elements">
+    <label class="tooltip">{{localize "MK.CONTINUOUS_SCAN.LABEL"}}
+        <span class="tooltiptext">{{localize "MK.CONTINUOUS_SCAN.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <input class="checkbox" type="checkbox" id="mkContinuousScan">
+    </div>
+</div>
+
+<div class="form-elements">
+    <label class="tooltip">{{localize "MK.MIDI_CONNECTION_EVENT.LABEL"}}
+        <span class="tooltiptext">{{localize "MK.MIDI_CONNECTION_EVENT.TOOLTIP"}}</span>
+    </label>
+    <div class="form-val">
+        <select id="mkConnectionEvent">
+            <option value="module">{{localize "MK.MIDI_CONNECTION_EVENT.MODULE"}}</option>
+            <option value="start">{{localize "MK.MIDI_CONNECTION_EVENT.ONSTART"}}</option>
+            <option value="manual">{{localize "MK.MIDI_CONNECTION_EVENT.MANUAL"}}</option>
+        </select>
+    </div>
+</div>
+
 <div class="form-elements">
     <label class="tooltip">{{localize "MK.SCAN_MIDI.LABEL"}}
         <span class="tooltiptext">{{localize "MK.SCAN_MIDI.TOOLTIP"}}</span>
@@ -25,14 +68,24 @@
     </div>  
 </div>
 
-<h3 class="tooltip">{{localize "MK.MIDIDEVICES.LABEL"}}
-    <span class="tooltiptext">{{localize "MK.MIDIDEVICES.TOOLTIP"}}</span>
-    </h3>
+<div class="form-elements">
+    <label class="tooltip">{{localize "MK.MIDI_CONNECT.LABEL"}}
+        <span class="tooltiptext">{{localize "MK.MIDI_CONNECT.HINT"}}</span>
+    </label>
+    <div class="form-val">
+        <button type="button" id="mkMidiConnect">{{localize "CONNECT"}}</button>
+    </div>
+</div>
+
+<hr>
+
+<h3>{{localize "MK.MIDIDEVICES.LABEL"}}</h3>
+<div class="notes">{{localize "MK.MIDIDEVICES.TOOLTIP"}}</div>
+<br>
 <table class="mkTable" id="mkTable">
     <tr>
         <th class="mkTable-Data">{{localize "INPUTS"}}</th>
         <th class="mkTable-Data">{{localize "OUTPUTS"}}</th>
     </tr>
     <div id="mkEntries"></div>
-    
 </table>

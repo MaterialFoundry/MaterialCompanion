@@ -15,10 +15,6 @@ function sendToRenderer(type,data) {
     //console.log('sending to renderer',data)
 }
 
-//ipcMain.handle('scanSerial', async(event, ...args) => {
- //   console.log('sendWs',event,...args);
-//})
-
 class materialPlaneWsClient {
     sensorIp;
     server;
@@ -45,8 +41,6 @@ class materialPlaneWsClient {
         let parent = this;
 
         ws.onmessage = function(msg) {
-            //console.log('msg',msg.data)
-            //console.log(this.server);
             clearInterval(interval);
             interval = setInterval(parent.resetConnection, 2500);
             let data;
@@ -71,7 +65,6 @@ class materialPlaneWsClient {
         }
 
         ws.onclose = function() {
-            //console.log("Material Plane Sensor: Websocket disconnected");
             if (wsOpen) sendToRenderer('materialPlane_deviceDisconnected');
             wsOpen = false;
             
@@ -86,7 +79,6 @@ class materialPlaneWsClient {
 
     broadcast(data) {
         if (wsOpen) {
-            //console.log('toSensor',data)
             ws.send(JSON.stringify(data))
         }
     }
@@ -98,7 +90,6 @@ class materialPlaneWsClient {
     }
 
     resetConnection() {
-        //console.log('reset',ws)
         if (wsOpen) {
             wsOpen = false;
             console.log("Material Plane: Disconnected from server");
@@ -128,8 +119,6 @@ class materialPlaneSerial {
     }
 
     async scanSerial() {
-        //console.log("scanning serialports")
-        //console.log(await this.serialPort.scanSerialPorts());
     }
 }
 

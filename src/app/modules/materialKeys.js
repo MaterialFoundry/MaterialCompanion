@@ -1,10 +1,60 @@
-const { getSetting, setSetting, getDataFromMain, DeviceManager, clientManager } = require('../misc.js');
+const { getSetting, setSetting, getDataFromMain, invokeRenderer, DeviceManager, clientManager } = require('../misc.js');
+const protocols = require('../../modules/materialKeysProtocols.js');
+let popup;
 
 class MaterialKeys {
-    constructor() {
-        this.deviceManager = new DeviceManager();
-        this.input;
-        this.output;
+    input;
+    output;
+    protocols;
+
+    constructor(pUp) {
+        popup = pUp;
+        //this.deviceManager = new DeviceManager();
+    }
+
+    async init() {
+
+        //Populate protocol selector
+        const protocolElmnt = document.getElementById('mkProtocol');
+        for (let protocol of protocols.protocols) {
+            const opt = document.createElement("option");
+            opt.value = protocol.name;
+            opt.text = protocol.name;
+            protocolElmnt.add(opt, null);
+        }
+        const protocol = await getSetting('MkProtocol');
+        protocolElmnt.value = protocol;
+
+        //Add event listener to protocol selector
+        protocolElmnt.addEventListener('change', async function(e) {
+            const protocol = e.target.value;
+            setSetting('MkProtocol',protocol);
+            invokeRenderer('updateMkProtocol', protocol);
+        });
+
+        document.getElementById('mkScanMidi').addEventListener('click', function() { invokeRenderer('scanMidi');});
+        document.getElementById('mkScanOnStart').addEventListener('click', function(e) { setSetting('mkScanOnStart',e.target.checked);});
+        document.getElementById('mkContinuousScan').addEventListener('click', function(e) { setSetting('mkContinuousScan',e.target.checked);});
+        document.getElementById('mkMidiConnect').addEventListener('click', function(e) {invokeRenderer('connectMidi'); });
+        document.getElementById('mkConnectionEvent').addEventListener('change', function(e) { setSetting('mkConnectionEvent',e.target.value);});
+        
+        document.getElementById('mkConnectionEvent').value = await getSetting('mkConnectionEvent');
+
+        if (await getSetting('mkScanOnStart')) {
+            document.getElementById("mkScanOnStart").checked = true;
+            setTimeout(()=>{
+                invokeRenderer('scanMidi');
+            },500);
+        }
+
+        if (await getSetting('mkContinuousScan')) {
+            document.getElementById("mkContinuousScan").checked = true;
+            invokeRenderer('scanMidi');
+        }
+
+        if (await getSetting('mkConnectionEvent') == 'start') {
+            invokeRenderer('connectMidi');
+        }
     }
 
     setFoundryConnected(connected) {
@@ -18,12 +68,14 @@ class MaterialKeys {
     }
 
     async updateDevices(inputs, outputs) {
-        const allowedDevices = await getDataFromMain('allowedMkDevices');
-        console.log('updating midi devices',inputs, outputs, allowedDevices)
+        const selectedDevice = {
+            input: await getSetting('selectedMkInputDevice'),
+            output: await getSetting('selectedMkOutputDevice')
+        }
 
         let table = document.getElementById('mkTable');
         for (let i=table.rows.length-1; i>0; i--) 
-            table.deleteRow(i);
+           table.deleteRow(i);
         
         const len = inputs.length > outputs.length ? inputs.length : outputs.length;
 
@@ -32,14 +84,16 @@ class MaterialKeys {
             let cell1 = row.insertCell(0);
             let cell2 = row.insertCell(1);
             const input = inputs[i];
-            if (input == undefined) cell1.innerHTML = '';
-            else {
-                cell1.innerHTML = await this.createTableDevice(input, allowedDevices, 'input');
-                cell2.innerHTML = await this.createTableDevice(input, allowedDevices, 'output');
-            }
-
             const output = outputs[i];
+            if (input == undefined)     cell1.innerHTML = '';
+            else                        cell1.innerHTML = await this.createDeviceTableEntry(input, selectedDevice, 'input');
+            if (output == undefined)    cell2.innerHTML = '';
+            else                        cell2.innerHTML = await this.createDeviceTableEntry(output, selectedDevice, 'output');
+            
+
+            //const output = outputs[i];
         }
+
         const clickableDevices = document.getElementsByName('mkDevice');
         let parent = this;
         for (let elmnt of clickableDevices) {
@@ -52,30 +106,42 @@ class MaterialKeys {
                     if (i > 0) name += '-';
                     name += idSplit[i];
                 }
-                let blockedDevices = await getSetting('blockedMkDevices');
-                if (blockedDevices.find(d => d.name == name && d.type == type)) {
-                    blockedDevices = blockedDevices.filter(d => d.name != name || d.type != type);
+
+                let status = '';
+                const classList = event.target.classList.value;
+                if (classList.includes('notConnected')) status = 'notConnected';
+                else if (classList.includes('selectedDevice')) status = 'selectedDevice';
+
+                if (status == 'notConnected') {
+                    if (type == 'input') {
+                        selectedDevice.input = name;
+                    }
+                    else if (type == 'output') {
+                        selectedDevice.output = name;
+                    }
                 }
                 else {
-                    blockedDevices.push({name, type});
+                    if (type == 'input') {
+                        selectedDevice.input = "";
+                    }
+                    else if (type == 'output') {
+                        selectedDevice.output = "";
+                    }
                 }
-                setSetting('blockedMkDevices',blockedDevices)
+
+                await setSetting('selectedMkInputDevice',selectedDevice.input);
+                await setSetting('selectedMkOutputDevice',selectedDevice.output);
+                invokeRenderer('updateMkDevice');
                 setTimeout(()=>parent.updateDevices(inputs, outputs),10);
             });
         }
     }
 
-    async createTableDevice(device, allowedDevices, deviceType) {
-        const blockedDevices = await getSetting('blockedMkDevices');
+    async createDeviceTableEntry(device, selectedDevice, deviceType) {
         let status = '';
-        if (blockedDevices.find(d => d.name == device && d.type == deviceType)) status = 'blocked';
-        else {
-            let validDevices = allowedDevices.devices.filter(d => device.includes(d.id));
-            if (validDevices.filter(d => device.includes(d.id)).length > 0) {
-                if (validDevices.find(d => d.id == this.input?.id)) status = 'connected'
-                else status = 'validDevice'
-            } 
-        }
+        if (deviceType == 'input' && selectedDevice.input == device) status = 'selectedDevice';
+        else if (deviceType == 'output' && selectedDevice.output == device) status = 'selectedDevice';
+        else status = 'notConnected'
         return  `<div class="mkDevice ${status}" id="${device}-${deviceType}" name="${status != '' ? 'mkDevice' : ''}">${device}</div>`;
     }
 }

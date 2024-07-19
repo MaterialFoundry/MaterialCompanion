@@ -4,7 +4,7 @@ const url = require('url');
 const packageJson = require('../package.json');
 const settings = require('electron-settings');
 const { initializeWebsocket, getConnections } = require('./websocket')
-const { initializeMidi, getAllowedMkDevices } = require('./modules/materialKeys')
+const { initializeMidi, midi } = require('./modules/materialKeys')
 
 let dev = false;
 
@@ -34,19 +34,27 @@ const defaultSettings = {
     dockComPort: "",
     clientData: [],
     autoScanUsb: false,
-    autoScanMidi: true,
-    blockedMkDevices: [],
+    mkContinuousScan: false,
+    mkScanOnStart: false,
+    MkProtocol: "Launchpad MK3",
+    mkConnectionEvent: 'module',
+    selectedMkInputDevice: undefined,
+    selectedMkOutputDevice: undefined,
     sensorConnectionEvent: 'module',
     sensorConnectionMethod: 'wifi',
     mpSensorIp: 'materialsensor.local:3000',
-    mpSensorPreReleases: false
+    mpSensorPreReleases: false,
+    hideMP: false,
+    hideMD: false,
+    hideMK: false
 }
 
 setDefaultSettings();
 
 async function setDefaultSettings(force = false) {
     for (const [key, value] of Object.entries(defaultSettings)) {
-        if (await settings.get(key) == undefined || force) 
+        const currentValue = await settings.get(key);
+        if (currentValue == undefined || force) 
             await settings.set(key, value);
     }
 }
@@ -81,7 +89,7 @@ async function createWindow() {
             nodeIntegration: true,
             contextIsolation: false,
         }
-    })
+    });
   
     //Load main html file
     win.loadURL(url.format({
@@ -120,6 +128,23 @@ async function createWindow() {
 
     win.once('ready-to-show', async () => {
         if (!runInTray) win.show();
+        
+/*
+        //capture console logs to send them to the app
+        let oldConsoleLog = console.log;
+        console.log = function(message) {
+            oldConsoleLog.apply(console, arguments);
+            win.webContents.send('asynchronous-message', {type:'consoleLog',message});
+        }
+        console.warn = function(message) {
+            //oldConsoleWarn.apply(console, arguments);
+            win.webContents.send('asynchronous-message', {type:'consoleWarn',message});
+        }
+        console.error = function(message) {
+            //oldConsoleError.apply(console, arguments);
+            win.webContents.send('asynchronous-message', {type:'consoleError',message});
+        }
+            */
     })
 
     win.on('minimize',async function(event){
@@ -146,6 +171,7 @@ async function createWindow() {
 }
 
 function relaunchApp() {
+    midi.disconnect();
     app.relaunch();
     app.exit();
 }
@@ -208,6 +234,7 @@ const createGameWindow = (game) => {
             else app.gameWindow.webContents.closeDevTools();
         }
         if (input.type == 'keyDown' && input.key == 'F5') {
+            midi.disconnect();
             app.gameWindow.webContents.send('asynchronous-message', {
                 type: 'refreshWindow'
             });
@@ -243,7 +270,7 @@ const createGameWindow = (game) => {
 
 
 ipcMain.handle('restart', (event) => {
-    //console.log('restarting');
+    console.log('restarting');
     setTimeout(relaunchApp,1000);
 });
 
@@ -263,7 +290,8 @@ ipcMain.handle('setSetting', async (event, key, value) => {
 
 ipcMain.handle('getSetting', async (event, key) => {
     //console.log('getSetting',key)
-    return await settings.get(key);
+    const result = await settings.get(key);
+    return result;
 });
 
 ipcMain.handle('defaultSettings', async (event) => {
@@ -273,9 +301,8 @@ ipcMain.handle('defaultSettings', async (event) => {
 });
 
 ipcMain.handle('getData', async (event, key) => {
-   // console.log('getData',key); 
+    //console.log('getData',key); 
     if (key == 'appVersion') return app.getVersion();
-    //return getAllowedMkDevices();
 });
 
 ipcMain.handle('setData', async (event, key, value) => {

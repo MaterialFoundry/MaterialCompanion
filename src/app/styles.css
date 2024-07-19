@@ -273,21 +273,12 @@ body {
   font-size: 0.75em;
 }
 
-.blocked {
-  border: 2px solid red;
-}
-
 .notConnected {
   border: 2px solid rgb(59, 59, 59);
-  cursor: default;
-}
-
-.validDevice {
-  border: 2px solid orange;
   cursor: pointer;
 }
 
-.connected {
+.selectedDevice {
   border: 2px solid green;
   cursor: pointer;
 }
