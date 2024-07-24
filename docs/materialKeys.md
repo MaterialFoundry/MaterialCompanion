@@ -7,7 +7,7 @@ At the top you can see if Material Companion has connected to a MIDI device and 
 ## Settings
 You can find the following settings:
 
-* Protocol: Set the communication protocol to use. This depends on which device you're trying to connect to, see [here](https://materialfoundry.github.io/MaterialKeys/supportedDevices)
+* Device: Sets the device to use, see [here](https://materialfoundry.github.io/MaterialKeys/supportedDevices) for the supported devices
 * Scan for MIDI Devices on Start: If ticked, Material Companion will scan for MIDI devices on start
 * Continuous Scan: If ticked, Material Companion will continuously scan for changes in MIDI devices
 * Connection Event: This sets when Material Companion will attempt to connect to the selected device, with the following options:

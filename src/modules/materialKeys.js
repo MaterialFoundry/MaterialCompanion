@@ -1,7 +1,7 @@
 const settings = require('electron-settings');
 const { app, ipcMain } = require('electron');
 const easymidi = require('easymidi');
-const protocols = require('./materialKeysProtocols.js');
+const protocols = require('./materialKeysDevices/materialKeysDevices.js').protocols;
 
 let win;
 let midi;
@@ -70,7 +70,7 @@ class Midi {
         const connected = this.connected;
         if (connected) this.disconnect();
     
-        for (let p of protocols.protocols) {
+        for (let p of protocols) {
             //console.log(JSON.stringify({p:protocols[i],name:protocols[i].name, p2:protocol}));
             if (p.name == protocol);
             this.protocol = p.protocol;
@@ -120,7 +120,9 @@ class Midi {
         });
 
         const connectionEvent = await settings.get('mkConnectionEvent');
-        if (connectionEvent == 'start' && !this.connected) {
+        if (!this.connected) {
+            const mkConnection = app.connections.find(c => c.source == 'MaterialKeys_Foundry');
+            if (connectionEvent == 'start' || (connectionEvent == 'module' && mkConnection != undefined && mkConnection.connected))
             this.connect();
         }
     }

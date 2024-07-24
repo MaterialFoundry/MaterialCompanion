@@ -36,7 +36,7 @@ const defaultSettings = {
     autoScanUsb: false,
     mkContinuousScan: false,
     mkScanOnStart: false,
-    MkProtocol: "Launchpad MK3",
+    MkProtocol: "Launchpad Mini Mk3",
     mkConnectionEvent: 'module',
     selectedMkInputDevice: undefined,
     selectedMkOutputDevice: undefined,
@@ -171,7 +171,7 @@ async function createWindow() {
 }
 
 function relaunchApp() {
-    midi.disconnect();
+    if (midi) midi.disconnect();
     app.relaunch();
     app.exit();
 }

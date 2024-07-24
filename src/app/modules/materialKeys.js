@@ -1,5 +1,5 @@
 const { getSetting, setSetting, getDataFromMain, invokeRenderer, DeviceManager, clientManager } = require('../misc.js');
-const protocols = require('../../modules/materialKeysProtocols.js');
+const protocols = require('../../modules/materialKeysDevices/materialKeysDevices.js');
 let popup;
 
 class MaterialKeys {
