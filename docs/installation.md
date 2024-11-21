@@ -13,13 +13,21 @@ You can either run Material Companion from one of the prebuilt packages, or buil
 4. Material Plane users that want to use Material Compaion to update the Material Plane hardware you will need to install [Python v3](https://www.python.org/downloads/).
 
 <b>Some notes for MacOS users</b><br>
-On MacOS you will probably get a message that it can't be opened because the developer cannot be verified. To solve this:
+On MacOS you will probably get a message that it can't be opened because the developer cannot be verified, or you might get an error stating `“Material Companion” is damaged and can’t be opened. You should move it to the Trash`. 
+
+To solve the first issue (unverified developer):
 
 1. Open 'System Preferences'
 2. Navigate to 'Security & Privacy
 3. Unlock the page using the lock in the lower left
 4. There should be a message: `"Material Companion" was blocked from use because it is not from an identified developer', press 'Open Anyway' to the right of that message
 5. You might get another message to confirm that you want to open it: click 'Open'
+
+To solve the second issue ("Material Companion" is damaged):
+
+1. Open a Terminal window
+2. Run the following command: `xattr -c "/Applications/Material Companion.app"`<br>
+    Please note that if Material Companion is not located in the Applications folder you will have to modify the above command so it points to the correct location.
 
 <b>Connection issues with some browsers</b><br>
 Some browsers, such as Brave, have a built-in adblocker that may prevent Foundry from connecting to Material Companion. If you run into connection issues, try disabling the adblocker (in brave: press the lion icon, and set the shields to 'down'), or use another browser like Chrome or Firefox.
